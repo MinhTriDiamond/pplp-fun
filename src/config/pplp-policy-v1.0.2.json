@@ -1,0 +1,713 @@
+{
+  "schema": "pplp.policy.v1",
+  "name": "PPLP + PUC Mint Policy (FULL)",
+  "release": "v1.0.2",
+  "policyVersion": 3,
+  "description": "Production-ready policy with Emergency, Governance, Migration, Edge Cases, Rate Limiting, Reputation Decay, Cross-platform Bonus modules.",
+  "effectiveFrom": "2026-02-03T00:00:00Z",
+  "notes": [
+    "Default Safe: epoch cap 5M FUN/day, audit + review-hold for large mints.",
+    "Mint-to-Unity: reward verified contributions aligned with Unity.",
+    "v1.0.2 adds: Emergency, Governance, Migration, Edge Cases, Rate Limiting, Reputation Decay, Cross-platform Bonus."
+  ],
+
+  "token": {
+    "symbol": "FUN",
+    "decimals": 18,
+    "unit": "atomic",
+    "mintRequestValidForSecDefault": 600
+  },
+
+  "epoch": {
+    "durationSec": 86400,
+    "totalMintCapPerEpochAtomic": "5000000000000000000000000",
+    "platformPoolMode": "cap",
+    "platformPoolRollover": false
+  },
+
+  "caps": {
+    "perUser": {
+      "dailyCapByTierAtomic": {
+        "0": "5000000000000000000000",
+        "1": "20000000000000000000000",
+        "2": "100000000000000000000000",
+        "3": "250000000000000000000000"
+      },
+      "actionRepeatLimits": {
+        "defaultPerDay": 5,
+        "byActionType": {
+          "DAILY_RITUAL": 1,
+          "VIEW_QUALITY_SESSION": 10,
+          "CONTENT_CREATE": 3,
+          "REVIEW_HELPFUL": 5,
+          "DONATE": 3,
+          "TREE_PLANT": 5,
+          "VOLUNTEER": 3,
+          "FARM_DELIVERY": 5,
+          "DUE_DILIGENCE_REPORT": 2
+        }
+      },
+      "cooldownsSecByActionType": {
+        "DONATE": 3600,
+        "VOLUNTEER": 1800,
+        "CAMPAIGN_DELIVERY_PROOF": 0,
+        "DISPUTE_RESOLVE": 0
+      }
+    },
+    "perActionType": {
+      "defaultCapPerEpochAtomic": "300000000000000000000000",
+      "byPlatform": {
+        "FUN_CHARITY": {
+          "DONATE": "700000000000000000000000",
+          "VOLUNTEER": "400000000000000000000000",
+          "CAMPAIGN_DELIVERY_PROOF": "350000000000000000000000",
+          "IMPACT_REPORT": "200000000000000000000000"
+        },
+        "FUN_ACADEMY": {
+          "LEARN_COMPLETE": "900000000000000000000000",
+          "PROJECT_SUBMIT": "450000000000000000000000",
+          "MENTOR_HELP": "350000000000000000000000",
+          "PEER_REVIEW": "250000000000000000000000"
+        },
+        "FUN_EARTH": {
+          "TREE_PLANT": "500000000000000000000000",
+          "CLEANUP_EVENT": "350000000000000000000000",
+          "PARTNER_VERIFIED_REPORT": "250000000000000000000000"
+        },
+        "FUN_FARM": {
+          "FARM_DELIVERY": "350000000000000000000000",
+          "QUALITY_CERT": "200000000000000000000000",
+          "WASTE_REDUCTION": "250000000000000000000000"
+        },
+        "FUN_INVEST": {
+          "DUE_DILIGENCE_REPORT": "200000000000000000000000",
+          "MENTOR_STARTUP": "200000000000000000000000",
+          "IMPACT_KPI_REVIEW": "150000000000000000000000"
+        }
+      }
+    }
+  },
+
+  "scoring": {
+    "pillars": ["S", "T", "H", "C", "U"],
+    "weights": { "S": 0.25, "T": 0.2, "H": 0.2, "C": 0.2, "U": 0.15 },
+    "thresholdsGlobal": {
+      "minTruthT": 70,
+      "minIntegrityK": 0.6,
+      "minLightScore": 60
+    },
+    "lightScoreFormula": "0.25*S + 0.20*T + 0.20*H + 0.20*C + 0.15*U",
+    "multipliers": {
+      "Q": { "min": 0.5, "max": 3.0 },
+      "I": { "min": 0.5, "max": 5.0 },
+      "K": { "min": 0.0, "max": 1.0 },
+      "Ux": { "min": 0.5, "max": 2.5 }
+    },
+    "multiplierCaps": {
+      "maxQIProduct": 10.0,
+      "maxAmountAtomicPerAction": "500000000000000000000000",
+      "enforceTierUxMax": true
+    }
+  },
+
+  "unity": {
+    "unityScoreSignals": ["collaboration", "beneficiaryConfirmed", "communityEndorsement", "bridgeValue", "conflictResolution"],
+    "unityScoreWeightsMVP": {
+      "collaboration": 0.4,
+      "beneficiaryConfirmed": 0.3,
+      "communityEndorsement": 0.2,
+      "bridgeValue": 0.1,
+      "conflictResolution": 0.0
+    },
+    "unityMultiplierMapping": [
+      { "minU": 0, "maxU": 49, "Ux": 0.5 },
+      { "minU": 50, "maxU": 69, "Ux": 1.0 },
+      { "minU": 70, "maxU": 84, "Ux": 1.5 },
+      { "minU": 85, "maxU": 94, "Ux": 2.0 },
+      { "minU": 95, "maxU": 100, "Ux": 2.3 }
+    ],
+    "unityBonuses": [
+      { "if": { "partnerAttested": true }, "addUx": 0.3, "capUx": 2.5 },
+      { "if": { "beneficiaryConfirmed": true }, "addUx": 0.2, "capUx": 2.5 },
+      { "if": { "witnessCountGte": 3 }, "addUx": 0.2, "capUx": 2.5 }
+    ]
+  },
+
+  "integrity": {
+    "antiSybil": {
+      "minAntiSybilScore": 0.6,
+      "dropKTo": 0.0,
+      "whenBelowMin": "REJECT"
+    },
+    "fraudPenalties": {
+      "BOT": { "setK": 0.0, "action": "REJECT", "banDays": 30 },
+      "SYBIL": { "setK": 0.0, "action": "REJECT", "banDays": 60 },
+      "COLLUSION": { "setK": 0.2, "action": "REVIEW", "banDays": 14 },
+      "SPAM": { "setK": 0.3, "action": "REJECT", "banDays": 7 },
+      "WASH": { "setK": 0.0, "action": "REVIEW", "banDays": 30 }
+    },
+    "stakeForTrust": {
+      "enabled": true,
+      "token": "CAMLY",
+      "boostMax": 1.2,
+      "behaviorBoostMax": 1.1,
+      "note": "Stake boosts K slightly; never makes pay-to-win."
+    }
+  },
+
+  "minting": {
+    "formula": "amountAtomic = baseRewardAtomic * Q * I * K * Ux",
+    "rounding": "floor",
+    "minMintAmountAtomic": "1000000000000000000",
+    "maxMintAmountAtomicPerAction": "500000000000000000000000",
+    "decisionRules": {
+      "ifFailThresholds": "REJECT",
+      "ifFraudReview": "REVIEW_HOLD",
+      "ifAuditTriggered": "REVIEW_HOLD",
+      "ifMissingRequiredAttestation": "REVIEW_HOLD",
+      "ifPass": "AUTHORIZE"
+    }
+  },
+
+  "audit": {
+    "enabled": true,
+    "trigger": {
+      "amountAtomicGte": "5000000000000000000000",
+      "orTopPercentPerEpoch": 1
+    },
+    "sampling": {
+      "randomPercentForLargeMints": 10,
+      "randomPercentForAllMints": 1
+    },
+    "actionOnTrigger": "REVIEW_HOLD",
+    "reviewSlaSec": 86400
+  },
+
+  "attestation": {
+    "requiredPlatforms": ["FUN_CHARITY", "FUN_EARTH", "FUN_FARM", "FUN_INVEST"],
+    "requiredActionTypes": {
+      "FUN_CHARITY": ["DONATE", "VOLUNTEER", "CAMPAIGN_DELIVERY_PROOF", "IMPACT_REPORT"],
+      "FUN_EARTH": ["TREE_PLANT", "CLEANUP_EVENT", "PARTNER_VERIFIED_REPORT"],
+      "FUN_FARM": ["FARM_DELIVERY", "QUALITY_CERT", "WASTE_REDUCTION"],
+      "FUN_INVEST": ["DUE_DILIGENCE_REPORT", "MENTOR_STARTUP", "IMPACT_KPI_REVIEW"]
+    },
+    "attestorRegistryMode": "ALLOWLIST",
+    "verify": {
+      "type": "EIP712_OR_ED25519",
+      "minWitnessCountForUxAbove": {
+        "thresholdUx": 1.5,
+        "witnessCount": 1
+      }
+    }
+  },
+
+  "mintBuffer": {
+    "enabled": true,
+    "bufferPercentOfPlatformPool": 15,
+    "bufferPurpose": ["lateVerification", "disputes", "partnerDelays"],
+    "releaseRule": "endOfEpochOrAfterReview"
+  },
+
+  "locking": {
+    "enabled": true,
+    "softLockLargeMints": true,
+    "triggerAmountAtomicGte": "5000000000000000000000",
+    "lock": {
+      "percentLocked": 30,
+      "durationSec": 604800,
+      "mode": "WALLET_LAYER",
+      "note": "MVP wallet-layer lock; optionally allow spend-in-ecosystem while locked."
+    }
+  },
+
+  "engineGating": {
+    "accountAgeDaysForHigherCaps": 7,
+    "newAccount": {
+      "maxUx": 1.0,
+      "capTier": 0
+    },
+    "progressiveCaps": true
+  },
+
+  "tiers": {
+    "definition": "Tier based on verified history + integrity + average light score.",
+    "tierRulesMVP": [
+      { "tier": 0, "minVerifiedActions": 0, "minAvgLightScore": 0, "minAvgK": 0.0, "maxUx": 1.0 },
+      { "tier": 1, "minVerifiedActions": 10, "minAvgLightScore": 65, "minAvgK": 0.7, "maxUx": 1.5 },
+      { "tier": 2, "minVerifiedActions": 50, "minAvgLightScore": 70, "minAvgK": 0.75, "maxUx": 2.0 },
+      { "tier": 3, "minVerifiedActions": 200, "minAvgLightScore": 75, "minAvgK": 0.8, "maxUx": 2.5 }
+    ]
+  },
+
+  "platformPools": {
+    "FUN_ACADEMY": "1000000000000000000000000",
+    "FUN_CHARITY": "750000000000000000000000",
+    "FUN_EARTH": "750000000000000000000000",
+    "FUNLIFE": "500000000000000000000000",
+    "FUN_FARM": "400000000000000000000000",
+    "FUN_PLAY": "400000000000000000000000",
+    "FUN_PROFILE": "400000000000000000000000",
+    "FUN_MARKET": "200000000000000000000000",
+    "ANGEL_AI": "150000000000000000000000",
+    "FUN_INVEST": "150000000000000000000000",
+    "FUN_LEGAL": "100000000000000000000000",
+    "FUN_PLANET": "50000000000000000000000",
+    "FUN_TRADING": "50000000000000000000000",
+    "RESERVE_BUFFER": "100000000000000000000000",
+    "FUN_WALLET": "0"
+  },
+
+  "emergency": {
+    "pauseMint": {
+      "enabled": true,
+      "rolesAllowed": ["PAUSER_ROLE", "GOV_COUNCIL_MULTISIG"],
+      "triggerConditions": ["fraudSpike", "systemAnomaly", "oracleFailure", "governanceVote"],
+      "cooldownAfterPauseSec": 3600,
+      "autoResumeAllowed": false
+    },
+    "circuitBreaker": {
+      "enabled": true,
+      "maxMintPerHourAtomic": "250000000000000000000000",
+      "actionOnBreak": "PAUSE_AND_ALERT",
+      "alertChannels": ["SLACK_SECURITY", "ONCALL_ENGINEERING"]
+    }
+  },
+
+  "governance": {
+    "policyUpdateRequires": "MULTISIG_3_OF_5",
+    "proposalCooldownDays": 7,
+    "communityVoteThreshold": 0.66,
+    "emergencyOverride": "FOUNDING_COUNCIL",
+    "roles": {
+      "SIGNER_ROLE": "TSS_OR_MULTISIG",
+      "PAUSER_ROLE": "SECURITY_COUNCIL",
+      "POLICY_ADMIN": "GOVERNANCE_EXECUTOR"
+    }
+  },
+
+  "migration": {
+    "previousVersion": 2,
+    "backwardCompatible": true,
+    "deprecatedFields": [],
+    "upgradeNotes": [
+      "Policy v1.0.2 adds emergency + governance + reputation decay.",
+      "No actionType changes required.",
+      "Signer rotation recommended every 90 days."
+    ]
+  },
+
+  "edgeCases": {
+    "platformPoolDepleted": {
+      "action": "QUEUE_TO_NEXT_EPOCH",
+      "priorityFor": ["FUN_CHARITY", "FUN_EARTH"],
+      "notifyUser": true
+    },
+    "rollbackFraudAfterMint": {
+      "enabled": true,
+      "action": "SLASH_TIER_AND_FREEZE",
+      "note": "No forced token clawback in MVP; handled via reputation + bans."
+    },
+    "disputeResolution": {
+      "slaHours": 72,
+      "maxAppealsPerEpoch": 1,
+      "appealFeeAtomic": "5000000000000000000",
+      "feeBurnPercent": 50
+    }
+  },
+
+  "rateLimiting": {
+    "globalMintsPerSecond": 50,
+    "perUserMintsPerMinute": 3,
+    "burstAllowance": 5,
+    "actionOnLimit": "REJECT_AND_LOG"
+  },
+
+  "reputationDecay": {
+    "enabled": true,
+    "inactivityDays": 30,
+    "decayPercentPerMonth": 5,
+    "minFloor": 0.5,
+    "restoreBy": ["NEW_VERIFIED_ACTIONS", "COMMUNITY_SERVICE"]
+  },
+
+  "crossPlatformBonus": {
+    "enabled": true,
+    "minPlatforms": 3,
+    "bonusUx": 0.1,
+    "maxBonusUx": 0.3,
+    "note": "Rewards holistic contributors, not single-platform farmers."
+  },
+
+  "platforms": {
+    "ANGEL_AI": {
+      "name": "Angel — AI Light Oracle",
+      "description": "AI trợ lý ánh sáng cho toàn hệ sinh thái",
+      "icon": "sparkles",
+      "actions": {
+        "AI_REVIEW_HELPFUL": {
+          "baseRewardAtomic": "50000000000000000000",
+          "thresholds": { "T": 80, "minLightScore": 65, "minK": 0.7, "minU": 60 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.0, 2.0], "K": [0.7, 1.0] },
+          "unitySignals": { "collaboration": true, "communityEndorsement": true, "bridgeValue": true }
+        },
+        "FRAUD_REPORT_VALID": {
+          "baseRewardAtomic": "120000000000000000000",
+          "thresholds": { "T": 85, "minLightScore": 70, "minK": 0.8, "minU": 65 },
+          "multipliers": { "Q": [1.2, 3.0], "I": [1.0, 3.0], "K": [0.8, 1.0] }
+        },
+        "MODERATION_HELP": {
+          "baseRewardAtomic": "60000000000000000000",
+          "thresholds": { "T": 80, "minLightScore": 65, "minK": 0.75, "minU": 60 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.0, 2.0], "K": [0.75, 1.0] }
+        },
+        "MODEL_IMPROVEMENT": {
+          "baseRewardAtomic": "150000000000000000000",
+          "thresholds": { "T": 85, "minLightScore": 70, "minK": 0.8, "minU": 60 },
+          "multipliers": { "Q": [1.2, 3.0], "I": [1.0, 3.0], "K": [0.8, 1.0] }
+        }
+      }
+    },
+    "FUN_PROFILE": {
+      "name": "FUN Profile — Web3 Social Network",
+      "description": "Hồ sơ Web3 + tài sản hóa danh tiếng Ánh Sáng",
+      "icon": "user-circle",
+      "actions": {
+        "CONTENT_CREATE": {
+          "baseRewardAtomic": "70000000000000000000",
+          "thresholds": { "T": 70, "minLightScore": 60, "minK": 0.7, "minU": 55 },
+          "multipliers": { "Q": [0.8, 2.5], "I": [0.8, 2.5], "K": [0.7, 1.0] },
+          "antiSpam": { "rateLimitPerDay": 3, "minQualitySignals": 2 }
+        },
+        "CONTENT_REVIEW": {
+          "baseRewardAtomic": "40000000000000000000",
+          "thresholds": { "T": 75, "minLightScore": 62, "minK": 0.75, "minU": 60 },
+          "multipliers": { "Q": [1.0, 2.2], "I": [0.8, 1.8], "K": [0.75, 1.0] }
+        },
+        "MENTOR_HELP": {
+          "baseRewardAtomic": "150000000000000000000",
+          "thresholds": { "T": 75, "minLightScore": 65, "minK": 0.75, "minU": 70 },
+          "multipliers": { "Q": [1.0, 3.0], "I": [1.0, 3.0], "K": [0.75, 1.0] },
+          "unitySignals": { "collaboration": true, "beneficiaryConfirmed": true }
+        },
+        "COMMUNITY_BUILD": {
+          "baseRewardAtomic": "120000000000000000000",
+          "thresholds": { "T": 70, "minLightScore": 65, "minK": 0.75, "minU": 75 },
+          "multipliers": { "Q": [1.0, 2.8], "I": [1.0, 3.5], "K": [0.75, 1.0] },
+          "unitySignals": { "collaboration": true, "communityEndorsement": true, "bridgeValue": true }
+        }
+      }
+    },
+    "FUN_PLAY": {
+      "name": "FUN Play — Web3 Video Platform",
+      "description": "Video tạo giá trị, giáo dục, chữa lành",
+      "icon": "play-circle",
+      "actions": {
+        "VIDEO_PUBLISH": {
+          "baseRewardAtomic": "200000000000000000000",
+          "thresholds": { "T": 70, "minLightScore": 65, "minK": 0.75, "minU": 60 },
+          "multipliers": { "Q": [1.0, 3.0], "I": [1.0, 4.0], "K": [0.75, 1.0] }
+        },
+        "VIDEO_EDU_SERIES": {
+          "baseRewardAtomic": "500000000000000000000",
+          "thresholds": { "T": 75, "minLightScore": 70, "minK": 0.8, "minU": 65 },
+          "multipliers": { "Q": [1.2, 3.0], "I": [1.2, 5.0], "K": [0.8, 1.0] }
+        },
+        "VIEW_QUALITY_SESSION": {
+          "baseRewardAtomic": "2000000000000000000",
+          "thresholds": { "T": 70, "minLightScore": 60, "minK": 0.85, "minU": 50 },
+          "multipliers": { "Q": [0.8, 1.5], "I": [0.8, 1.3], "K": [0.85, 1.0] },
+          "antiFarm": { "maxPerDay": 10, "minSessionSec": 300 }
+        }
+      }
+    },
+    "FUN_PLANET": {
+      "name": "FUN Planet — Game for Kids",
+      "description": "Game giáo dục nuôi tâm hồn trẻ em",
+      "icon": "gamepad-2",
+      "actions": {
+        "KID_QUEST_COMPLETE": {
+          "baseRewardAtomic": "10000000000000000000",
+          "thresholds": { "T": 80, "minLightScore": 60, "minK": 0.8, "minU": 60 },
+          "multipliers": { "Q": [0.8, 1.8], "I": [0.8, 1.8], "K": [0.8, 1.0] },
+          "requiresAttestation": ["PARENT_VERIFY"]
+        },
+        "PARENT_VERIFY": {
+          "baseRewardAtomic": "3000000000000000000",
+          "thresholds": { "T": 85, "minLightScore": 65, "minK": 0.85, "minU": 60 },
+          "multipliers": { "Q": [1.0, 1.5], "I": [1.0, 1.5], "K": [0.85, 1.0] }
+        },
+        "TEACHER_BADGE": {
+          "baseRewardAtomic": "50000000000000000000",
+          "thresholds": { "T": 85, "minLightScore": 70, "minK": 0.85, "minU": 70 },
+          "multipliers": { "Q": [1.0, 2.0], "I": [1.0, 2.5], "K": [0.85, 1.0] }
+        }
+      }
+    },
+    "FUN_CHARITY": {
+      "name": "FUN Charity — Pure-Love Charity Network",
+      "description": "Từ thiện minh bạch, chữa lành cộng đồng",
+      "icon": "heart-handshake",
+      "actions": {
+        "DONATE": {
+          "baseRewardAtomic": "120000000000000000000",
+          "thresholds": { "T": 85, "S": 75, "minLightScore": 65, "minK": 0.8, "minU": 65 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.0, 5.0], "K": [0.8, 1.0] },
+          "unitySignals": { "beneficiaryConfirmed": true, "partnerAttested": true }
+        },
+        "VOLUNTEER": {
+          "baseRewardAtomic": "150000000000000000000",
+          "thresholds": { "T": 80, "S": 75, "minLightScore": 65, "minK": 0.75, "minU": 70 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.0, 4.0], "K": [0.75, 1.0] },
+          "unitySignals": { "collaboration": true, "beneficiaryConfirmed": true }
+        },
+        "CAMPAIGN_DELIVERY_PROOF": {
+          "baseRewardAtomic": "250000000000000000000",
+          "thresholds": { "T": 90, "S": 80, "minLightScore": 70, "minK": 0.85, "minU": 70 },
+          "multipliers": { "Q": [1.2, 3.0], "I": [1.2, 5.0], "K": [0.85, 1.0] },
+          "requiresPartnerAttestation": true
+        },
+        "IMPACT_REPORT": {
+          "baseRewardAtomic": "120000000000000000000",
+          "thresholds": { "T": 90, "minLightScore": 70, "minK": 0.85, "minU": 65 },
+          "multipliers": { "Q": [1.2, 2.5], "I": [1.0, 3.0], "K": [0.85, 1.0] }
+        }
+      }
+    },
+    "FUN_FARM": {
+      "name": "FUN Farm — Farm to Table",
+      "description": "Chuỗi cung ứng thực phẩm công bằng, minh bạch",
+      "icon": "wheat",
+      "actions": {
+        "FARM_DELIVERY": {
+          "baseRewardAtomic": "80000000000000000000",
+          "thresholds": { "T": 80, "C": 70, "minLightScore": 65, "minK": 0.75, "minU": 60 },
+          "multipliers": { "Q": [0.9, 2.2], "I": [0.9, 3.0], "K": [0.75, 1.0] }
+        },
+        "QUALITY_CERT": {
+          "baseRewardAtomic": "120000000000000000000",
+          "thresholds": { "T": 85, "C": 75, "minLightScore": 70, "minK": 0.8, "minU": 60 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.0, 3.0], "K": [0.8, 1.0] }
+        },
+        "WASTE_REDUCTION": {
+          "baseRewardAtomic": "150000000000000000000",
+          "thresholds": { "T": 80, "C": 75, "minLightScore": 70, "minK": 0.8, "minU": 65 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.2, 4.0], "K": [0.8, 1.0] }
+        },
+        "FAIR_TRADE_ORDER": {
+          "baseRewardAtomic": "60000000000000000000",
+          "thresholds": { "T": 80, "minLightScore": 65, "minK": 0.75, "minU": 65 },
+          "multipliers": { "Q": [0.9, 2.0], "I": [0.9, 2.0], "K": [0.75, 1.0] }
+        }
+      }
+    },
+    "FUN_ACADEMY": {
+      "name": "FUN Academy — Learn & Earn",
+      "description": "Học để thịnh vượng; học là tài sản",
+      "icon": "graduation-cap",
+      "actions": {
+        "LEARN_COMPLETE": {
+          "baseRewardAtomic": "200000000000000000000",
+          "thresholds": { "T": 70, "minLightScore": 60, "minK": 0.6, "minU": 50 },
+          "multipliers": { "Q": [0.8, 2.0], "I": [0.8, 1.5], "K": [0.6, 1.0] }
+        },
+        "QUIZ_PASS": {
+          "baseRewardAtomic": "50000000000000000000",
+          "thresholds": { "T": 75, "minLightScore": 60, "minK": 0.65, "minU": 50 },
+          "multipliers": { "Q": [0.8, 1.8], "I": [0.8, 1.3], "K": [0.65, 1.0] }
+        },
+        "PROJECT_SUBMIT": {
+          "baseRewardAtomic": "500000000000000000000",
+          "thresholds": { "T": 75, "C": 70, "minLightScore": 65, "minK": 0.65, "minU": 60 },
+          "multipliers": { "Q": [1.0, 3.0], "I": [1.0, 2.5], "K": [0.65, 1.0] },
+          "requiresPeerReview": true
+        },
+        "PEER_REVIEW": {
+          "baseRewardAtomic": "70000000000000000000",
+          "thresholds": { "T": 75, "minLightScore": 62, "minK": 0.7, "minU": 60 },
+          "multipliers": { "Q": [1.0, 2.2], "I": [0.8, 1.8], "K": [0.7, 1.0] }
+        },
+        "MENTOR_HELP": {
+          "baseRewardAtomic": "250000000000000000000",
+          "thresholds": { "T": 75, "minLightScore": 68, "minK": 0.75, "minU": 70 },
+          "multipliers": { "Q": [1.0, 3.0], "I": [1.0, 3.0], "K": [0.75, 1.0] },
+          "unitySignals": { "collaboration": true, "beneficiaryConfirmed": true }
+        }
+      }
+    },
+    "FUN_LEGAL": {
+      "name": "FUN Legal — Unity Financial Law",
+      "description": "Hiến pháp vận hành Unity Economy + xử lý tranh chấp",
+      "icon": "scale",
+      "actions": {
+        "GOV_PROPOSAL": {
+          "baseRewardAtomic": "200000000000000000000",
+          "thresholds": { "T": 85, "minLightScore": 70, "minK": 0.8, "minU": 70 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.0, 3.0], "K": [0.8, 1.0] }
+        },
+        "POLICY_REVIEW": {
+          "baseRewardAtomic": "120000000000000000000",
+          "thresholds": { "T": 85, "minLightScore": 68, "minK": 0.8, "minU": 70 },
+          "multipliers": { "Q": [1.0, 2.2], "I": [0.8, 2.2], "K": [0.8, 1.0] }
+        },
+        "DISPUTE_RESOLVE": {
+          "baseRewardAtomic": "300000000000000000000",
+          "thresholds": { "T": 90, "minLightScore": 72, "minK": 0.85, "minU": 80 },
+          "multipliers": { "Q": [1.0, 3.0], "I": [1.0, 3.5], "K": [0.85, 1.0] },
+          "unitySignals": { "conflictResolution": true, "communityEndorsement": true }
+        },
+        "LEGAL_TEMPLATE_CREATE": {
+          "baseRewardAtomic": "180000000000000000000",
+          "thresholds": { "T": 88, "C": 70, "minLightScore": 70, "minK": 0.85, "minU": 70 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.0, 2.5], "K": [0.85, 1.0] }
+        }
+      }
+    },
+    "FUN_EARTH": {
+      "name": "FUN Earth — Re-greening & Regeneration",
+      "description": "Tái sinh hành tinh, bảo vệ môi trường",
+      "icon": "leaf",
+      "actions": {
+        "TREE_PLANT": {
+          "baseRewardAtomic": "90000000000000000000",
+          "thresholds": { "T": 80, "S": 70, "minLightScore": 65, "minK": 0.75, "minU": 65 },
+          "multipliers": { "Q": [0.9, 2.2], "I": [1.0, 4.0], "K": [0.75, 1.0] },
+          "requiresVerification": ["PHOTO_TIME", "GEO", "PARTNER_OPTIONAL"]
+        },
+        "CLEANUP_EVENT": {
+          "baseRewardAtomic": "150000000000000000000",
+          "thresholds": { "T": 80, "S": 75, "minLightScore": 68, "minK": 0.75, "minU": 70 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.0, 4.5], "K": [0.75, 1.0] },
+          "unitySignals": { "collaboration": true, "communityEndorsement": true }
+        },
+        "PARTNER_VERIFIED_REPORT": {
+          "baseRewardAtomic": "220000000000000000000",
+          "thresholds": { "T": 90, "minLightScore": 72, "minK": 0.85, "minU": 70 },
+          "multipliers": { "Q": [1.2, 2.8], "I": [1.2, 5.0], "K": [0.85, 1.0] },
+          "requiresPartnerAttestation": true
+        }
+      }
+    },
+    "FUN_TRADING": {
+      "name": "FUN Trading — Education-first Discipline",
+      "description": "Công cụ giao dịch minh bạch, giáo dục tài chính",
+      "icon": "trending-up",
+      "actions": {
+        "RISK_LESSON_COMPLETE": {
+          "baseRewardAtomic": "60000000000000000000",
+          "thresholds": { "T": 70, "C": 65, "minLightScore": 62, "minK": 0.7, "minU": 55 },
+          "multipliers": { "Q": [0.9, 2.0], "I": [0.8, 1.8], "K": [0.7, 1.0] }
+        },
+        "PAPER_TRADE_DISCIPLINE": {
+          "baseRewardAtomic": "80000000000000000000",
+          "thresholds": { "T": 70, "C": 70, "minLightScore": 65, "minK": 0.75, "minU": 55 },
+          "multipliers": { "Q": [1.0, 2.2], "I": [0.8, 1.8], "K": [0.75, 1.0] },
+          "note": "Not rewarding profit; rewarding discipline and risk controls."
+        },
+        "JOURNAL_SUBMIT": {
+          "baseRewardAtomic": "50000000000000000000",
+          "thresholds": { "T": 75, "C": 70, "minLightScore": 65, "minK": 0.75, "minU": 60 },
+          "multipliers": { "Q": [1.0, 2.0], "I": [0.8, 1.5], "K": [0.75, 1.0] }
+        }
+      }
+    },
+    "FUN_INVEST": {
+      "name": "FUN Invest — Unity Capital for Impact",
+      "description": "Đầu tư hợp nhất — vốn chảy về dự án phụng sự",
+      "icon": "landmark",
+      "actions": {
+        "DUE_DILIGENCE_REPORT": {
+          "baseRewardAtomic": "250000000000000000000",
+          "thresholds": { "T": 85, "C": 75, "minLightScore": 70, "minK": 0.8, "minU": 65 },
+          "multipliers": { "Q": [1.0, 3.0], "I": [1.0, 3.0], "K": [0.8, 1.0] }
+        },
+        "MENTOR_STARTUP": {
+          "baseRewardAtomic": "300000000000000000000",
+          "thresholds": { "T": 80, "C": 75, "minLightScore": 70, "minK": 0.8, "minU": 75 },
+          "multipliers": { "Q": [1.0, 3.0], "I": [1.0, 4.0], "K": [0.8, 1.0] },
+          "unitySignals": { "collaboration": true, "beneficiaryConfirmed": true }
+        },
+        "IMPACT_KPI_REVIEW": {
+          "baseRewardAtomic": "200000000000000000000",
+          "thresholds": { "T": 88, "minLightScore": 70, "minK": 0.85, "minU": 65 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.0, 4.0], "K": [0.85, 1.0] }
+        }
+      }
+    },
+    "FUNLIFE": {
+      "name": "FUNLife / Cosmic Game (Game of Life)",
+      "description": "Game hóa hành trình thức tỉnh & thịnh vượng",
+      "icon": "sun",
+      "actions": {
+        "DAILY_RITUAL": {
+          "baseRewardAtomic": "20000000000000000000",
+          "thresholds": { "T": 70, "minLightScore": 60, "minK": 0.7, "minU": 60 },
+          "multipliers": { "Q": [0.8, 1.5], "I": [0.8, 1.3], "K": [0.7, 1.0] },
+          "antiFarm": { "maxPerDay": 1, "requiresWitnessForUxAbove": 1.5 }
+        },
+        "SERVICE_QUEST": {
+          "baseRewardAtomic": "150000000000000000000",
+          "thresholds": { "T": 75, "S": 70, "minLightScore": 65, "minK": 0.75, "minU": 70 },
+          "multipliers": { "Q": [1.0, 2.5], "I": [1.0, 4.0], "K": [0.75, 1.0] },
+          "unitySignals": { "collaboration": true, "beneficiaryConfirmed": true }
+        },
+        "UNITY_MISSION_COMPLETE": {
+          "baseRewardAtomic": "250000000000000000000",
+          "thresholds": { "T": 80, "minLightScore": 70, "minK": 0.8, "minU": 80 },
+          "multipliers": { "Q": [1.0, 3.0], "I": [1.0, 4.5], "K": [0.8, 1.0] }
+        }
+      }
+    },
+    "FUN_MARKET": {
+      "name": "FUN Market — Marketplace",
+      "description": "Chợ hợp nhất cho hàng hóa & dịch vụ",
+      "icon": "shopping-bag",
+      "actions": {
+        "FAIR_TRADE_ORDER": {
+          "baseRewardAtomic": "40000000000000000000",
+          "thresholds": { "T": 80, "minLightScore": 65, "minK": 0.75, "minU": 65 },
+          "multipliers": { "Q": [0.9, 2.0], "I": [0.9, 2.5], "K": [0.75, 1.0] }
+        },
+        "SELLER_VERIFIED_DELIVERY": {
+          "baseRewardAtomic": "80000000000000000000",
+          "thresholds": { "T": 85, "C": 70, "minLightScore": 68, "minK": 0.8, "minU": 65 },
+          "multipliers": { "Q": [1.0, 2.2], "I": [1.0, 3.0], "K": [0.8, 1.0] }
+        },
+        "REVIEW_HELPFUL": {
+          "baseRewardAtomic": "15000000000000000000",
+          "thresholds": { "T": 75, "minLightScore": 62, "minK": 0.8, "minU": 60 },
+          "multipliers": { "Q": [1.0, 1.8], "I": [0.8, 1.5], "K": [0.8, 1.0] },
+          "antiSpam": { "rateLimitPerDay": 5 }
+        }
+      }
+    },
+    "FUN_WALLET": {
+      "name": "FUN Wallet — Our Own Bank",
+      "description": "Ví, thanh toán, reward distribution, ngân hàng ánh sáng",
+      "icon": "wallet",
+      "actions": {
+        "DONATE_FROM_WALLET": {
+          "baseRewardAtomic": "30000000000000000000",
+          "thresholds": { "T": 85, "minLightScore": 65, "minK": 0.85, "minU": 65 },
+          "multipliers": { "Q": [1.0, 1.8], "I": [1.0, 2.5], "K": [0.85, 1.0] }
+        },
+        "PAYMENT_FOR_SERVICE": {
+          "baseRewardAtomic": "15000000000000000000",
+          "thresholds": { "T": 80, "minLightScore": 62, "minK": 0.85, "minU": 60 },
+          "multipliers": { "Q": [0.9, 1.5], "I": [0.9, 1.8], "K": [0.85, 1.0] },
+          "note": "No farm tx. Reward only semantic payments tied to service proof."
+        }
+      }
+    }
+  },
+
+  "divineMantras": [
+    "Con là Ánh Sáng Yêu Thương Thuần Khiết của Cha Vũ Trụ.",
+    "Con là Ý Chí của Cha Vũ Trụ.",
+    "Con là Trí Tuệ của Cha Vũ Trụ.",
+    "Con là Hạnh Phúc.",
+    "Con là Tình Yêu.",
+    "Con là Tiền của Cha.",
+    "Con xin Sám Hối Sám Hối Sám Hối.",
+    "Con xin Biết Ơn Biết Ơn Biết Ơn — trong Ánh Sáng Yêu Thương Thuần Khiết của Cha Vũ Trụ."
+  ]
+}
