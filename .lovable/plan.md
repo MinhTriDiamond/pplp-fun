@@ -1,159 +1,190 @@
 
 
-# 🌟 FUN ECOSYSTEM MVP - Implementation Plan
+# PPLP Simulator Dashboard - Implementation Plan
 
-## Tổng quan dự án
-Xây dựng MVP cho FUN Ecosystem - Nền Kinh tế Ánh Sáng 5D, bao gồm PPLP Engine Simulator và FUN Wallet Earn UI, dựa trên Policy JSON v1.0.2.
-
----
-
-## Phase 1: Foundation & Policy Engine (Tuần 1-2)
-
-### 1.1 Policy v1.0.2 Complete JSON
-- Gộp toàn bộ Policy v1.0.1 + 7 modules mới (Emergency, Governance, Migration, Edge Cases, Rate Limiting, Reputation Decay, Cross-platform Bonus)
-- Tạo file `pplp-policy-v1.0.2.json` hoàn chỉnh, production-ready
-- Validate schema và logic consistency
-
-### 1.2 PPLP Scoring Engine (TypeScript)
-- Implement Light Score calculation: `0.25*S + 0.20*T + 0.20*H + 0.20*C + 0.15*U`
-- Implement Unity Score với 5 signals (collaboration, beneficiaryConfirmed, communityEndorsement, bridgeValue, conflictResolution)
-- Implement Mint Formula: `amountAtomic = BR × Q × I × K × Ux`
-- Tier system (0-3) với cap limits
-- Anti-fraud checks (K multiplier validation)
-
-### 1.3 Data Models & Types
-- TypeScript interfaces cho Policy, Action, User, Reputation
-- Enum definitions cho platforms, actionTypes, fraudTypes
-- Validation schemas với Zod
+## Mục tiêu
+Xây dựng giao diện Simulator để test và demonstrate PPLP Scoring Engine, cho phép người dùng nhập parameters và xem kết quả mint FUN Money real-time.
 
 ---
 
-## Phase 2: Simulator Dashboard (Tuần 2-3)
+## 1. Tạo trang Simulator (`/simulator`)
 
-### 2.1 Landing Page - FUN Ecosystem
-- Hero section với vision "5D Light Economy"
-- Giới thiệu 16 platforms (icons + descriptions)
-- 8 Divine Mantras hiển thị đẹp
-- Call-to-action: "Join the Light Economy"
-- Design style: **Spiritual & Elegant** với gold/purple/white theme
+### 1.1 Route Setup
+- Thêm route `/simulator` vào App.tsx
+- Tạo file `src/pages/Simulator.tsx`
 
-### 2.2 PPLP Simulator Dashboard
-- **Action Simulator**: Chọn platform → chọn action → nhập parameters → xem kết quả scoring
-- **Score Calculator**: Visualize 5 Pillars (S, T, H, C, U) với charts
-- **Mint Preview**: Hiển thị estimated FUN Money với breakdown (BR, Q, I, K, Ux)
-- **Tier Progression**: Visual progress bar cho user tier
-- **Unity Multiplier**: Interactive slider cho Unity Score → Ux mapping
-
-### 2.3 Policy Viewer
-- Hiển thị Policy JSON trong UI dễ đọc
-- Platform pools allocation chart (pie chart)
-- Action types browser theo platform
-- Threshold requirements table
+### 1.2 Layout
+- Header với navigation back to home
+- Main content area với 3 panels
 
 ---
 
-## Phase 3: FUN Wallet Earn UI (Tuần 3-4)
+## 2. Action Selector Panel
 
-### 3.1 User Profile & Reputation
-- Light Score display với 5 pillars breakdown
-- Tier badge (0-3) với progress to next tier
-- Unity Reputation history chart
-- Verified Actions timeline
+### 2.1 Platform Dropdown
+- Hiển thị 14 platforms từ Policy JSON
+- Icon + tên cho mỗi platform
+- Khi chọn platform, load available actions
 
-### 3.2 Earn Dashboard
-- Available actions theo platform
-- Current epoch stats (time remaining, pool status)
-- User caps display (daily limit, action repeat limits)
-- Recent earnings history
-
-### 3.3 Action Submission Flow
-- Step 1: Select Platform & Action Type
-- Step 2: Submit Evidence/Proof
-- Step 3: Review scoring preview
-- Step 4: Confirm & Submit
-- Step 5: Status tracking (PENDING → REVIEW → APPROVED/REJECTED)
-
-### 3.4 Wallet Overview
-- FUN Money balance display
-- Camly Coin balance (if staked)
-- Transaction history
-- Lock status for large mints (30% lock / 7 days)
+### 2.2 Action Type Dropdown  
+- Dynamic list based on selected platform
+- Hiển thị base reward cho mỗi action
+- Tooltip với thresholds required
 
 ---
 
-## Phase 4: Backend Integration Ready (Tuần 4+)
+## 3. Pillar Scores Input Panel
 
-### 4.1 Database Schema (Supabase-ready)
-- `users` - User profiles
-- `user_roles` - Role-based access (admin, moderator, user)
-- `light_actions` - Submitted actions
-- `scoring_records` - Calculated scores per action
-- `mint_requests` - Pending/approved mints
-- `reputation_history` - Light score over time
-- `epoch_stats` - Daily/weekly aggregates
+### 3.1 Five Pillar Sliders
+- **S (Service)**: Slider 0-100, màu gold
+- **T (Truth)**: Slider 0-100, màu blue
+- **H (Healing)**: Slider 0-100, màu pink
+- **C (Contribution)**: Slider 0-100, màu green
+- **U (Unity)**: Slider 0-100, màu purple
 
-### 4.2 Edge Functions Ready
-- PPLP Scoring Engine function
-- Mint Authorization function (EIP-712 ready)
-- Anti-fraud validation function
-- Tier calculation function
-
-### 4.3 Security & Governance
-- Emergency pause mechanism UI
-- Governance proposal viewer
-- Dispute resolution queue
-- Audit log viewer
+### 3.2 Real-time Light Score Display
+- Tính `0.25*S + 0.20*T + 0.20*H + 0.20*C + 0.15*U`
+- Hiển thị với visual indicator (pass/fail threshold)
+- Radar chart visualization
 
 ---
 
-## Tech Stack
-- **Frontend**: React + TypeScript + Tailwind CSS + shadcn/ui
-- **State**: TanStack Query + React Context
-- **Charts**: Recharts (đã có)
-- **Forms**: React Hook Form + Zod
-- **Backend Ready**: Supabase (Database + Auth + Edge Functions)
-- **Design**: Spiritual Elegant theme (Gold #D4AF37, Purple #6B46C1, Light #F8F4E8)
+## 4. Unity Signals Panel
+
+### 4.1 Toggle Switches
+- Collaboration (checkbox)
+- Beneficiary Confirmed (checkbox)
+- Community Endorsement (checkbox)
+- Bridge Value (checkbox)
+- Partner Attested (checkbox)
+- Witness Count (number input)
+
+### 4.2 Unity Score & Multiplier Display
+- Show calculated Unity Score (0-100)
+- Show resulting Ux multiplier (0.5 - 2.5)
+- Visual mapping indicator
 
 ---
 
-## Deliverables MVP
+## 5. User Profile Simulator
 
-1. ✅ **Policy v1.0.2 JSON** - Complete production-ready config
-2. ✅ **PPLP Scoring Engine** - TypeScript library
-3. ✅ **Landing Page** - FUN Ecosystem introduction
-4. ✅ **Simulator Dashboard** - Test scoring logic interactively
-5. ✅ **Earn UI Mockup** - User flow for submitting actions & earning
-6. ✅ **Wallet Overview** - Balance & history display
+### 5.1 Tier Selector
+- Radio buttons: Tier 0, 1, 2, 3
+- Show tier requirements
+- Show max Ux cap per tier
 
----
+### 5.2 Integrity Settings
+- Anti-Sybil Score slider (0.0 - 1.0)
+- Has Stake checkbox
+- Show resulting K multiplier
 
-## Design Preview
-
-**Color Palette:**
-- Primary Gold: `#D4AF37` (Light/Money of Father)
-- Sacred Purple: `#6B46C1` (Wisdom/Unity)
-- Pure Light: `#F8F4E8` (Background)
-- Earth Green: `#22C55E` (FUN Earth/Growth)
-- Love Pink: `#EC4899` (FUN Charity/Heart)
-
-**Typography:**
-- Headings: Elegant serif (spiritual feel)
-- Body: Clean sans-serif (readability)
-- Mantras: Special decorative font
+### 5.3 Active Platforms
+- Checkbox list of all platforms
+- Show cross-platform bonus preview
 
 ---
 
-## Kết quả mong đợi
+## 6. Results Panel (Real-time)
 
-Sau khi implement plan này, con sẽ có:
+### 6.1 Scoring Breakdown
+- Light Score với 5 pillars breakdown (radar chart)
+- Unity Score với signals breakdown
+- Multipliers table: Q, I, K, Ux
 
-🌟 **Website FUN Ecosystem** hoàn chỉnh với Landing Page giới thiệu
+### 6.2 Mint Calculation
+- Base Reward (từ action config)
+- Formula display: `BR × Q × I × K × Ux`
+- Final Amount in FUN Money (highlighted)
 
-🧮 **PPLP Simulator** để test và demonstrate scoring logic
+### 6.3 Decision Display
+- AUTHORIZE (green checkmark)
+- REJECT (red X với reasons)
+- REVIEW_HOLD (yellow với reason)
 
-💰 **FUN Wallet UI** mockup sẵn sàng kết nối backend
+### 6.4 Threshold Checker
+- List all required thresholds
+- Green check or red X for each
+- Failed reasons if any
 
-📋 **Policy v1.0.2** production-ready cho dev team
+---
 
-🎨 **Design System** thống nhất cho toàn bộ ecosystem
+## 7. Components to Create
+
+| File | Purpose |
+|------|---------|
+| `src/pages/Simulator.tsx` | Main simulator page |
+| `src/components/simulator/PlatformSelector.tsx` | Platform & action dropdowns |
+| `src/components/simulator/PillarSliders.tsx` | 5 pillar input sliders |
+| `src/components/simulator/UnitySignals.tsx` | Unity toggle switches |
+| `src/components/simulator/UserProfileSim.tsx` | Tier & integrity settings |
+| `src/components/simulator/ScoringResults.tsx` | Results display |
+| `src/components/simulator/MintPreview.tsx` | Final mint amount preview |
+| `src/components/simulator/RadarChart.tsx` | 5 pillars radar visualization |
+
+---
+
+## 8. Technical Implementation
+
+### 8.1 State Management
+```typescript
+interface SimulatorState {
+  platformId: PlatformId | null;
+  actionType: string | null;
+  pillarScores: PillarScores;
+  unitySignals: Partial<UnitySignals>;
+  userTier: 0 | 1 | 2 | 3;
+  antiSybilScore: number;
+  hasStake: boolean;
+  activePlatforms: PlatformId[];
+}
+```
+
+### 8.2 Real-time Calculation
+- useEffect hook watching all inputs
+- Call `scoreAction()` on every change
+- Debounce for performance
+
+### 8.3 Styling
+- Use existing Tailwind config (spiritual theme)
+- Card-based layout với shadows
+- Smooth animations on value changes
+- Mobile responsive
+
+---
+
+## 9. Landing Page Updates
+
+### 9.1 "Launch Simulator" Button
+- Link to `/simulator` route
+- Already exists in nav, just needs routing
+
+### 9.2 CTA Section
+- "Bat dau ngay" button links to simulator
+
+---
+
+## 10. Expected Output
+
+Sau khi implement, con sẽ có:
+
+- Giao diện đẹp để test PPLP Engine
+- Visualize 5 Pillars với radar chart
+- Real-time mint calculation
+- Demo được cho team/investors
+- Foundation cho FUN Wallet Earn UI sau này
+
+---
+
+## Timeline Estimate
+
+| Task | Time |
+|------|------|
+| Route setup + page scaffold | 15 min |
+| Platform/Action selector | 30 min |
+| Pillar sliders + chart | 45 min |
+| Unity signals panel | 30 min |
+| User profile simulator | 30 min |
+| Results + mint preview | 45 min |
+| Polish + responsive | 30 min |
+| **Total** | ~4 hours |
 
