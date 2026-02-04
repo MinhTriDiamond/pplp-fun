@@ -67,3 +67,25 @@ export const platformBgColors: Record<PlatformId, string> = {
   FUN_MARKET: "bg-gold/10",
   FUN_WALLET: "bg-gold/10",
 };
+
+// Helper function to get icon by name (for JSON-defined icon names)
+const iconNameMap: Record<string, LucideIcon> = {
+  'sparkles': Sparkles,
+  'user-circle': UserCircle,
+  'play-circle': PlayCircle,
+  'gamepad-2': Gamepad2,
+  'heart-handshake': HeartHandshake,
+  'wheat': Wheat,
+  'graduation-cap': GraduationCap,
+  'scale': Scale,
+  'leaf': Leaf,
+  'trending-up': TrendingUp,
+  'landmark': Landmark,
+  'sun': Sun,
+  'shopping-bag': ShoppingBag,
+  'wallet': Wallet,
+};
+
+export function getPlatformIcon(iconName: string): LucideIcon {
+  return iconNameMap[iconName] || Sparkles;
+}
