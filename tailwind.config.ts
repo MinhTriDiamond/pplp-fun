@@ -76,6 +76,16 @@ export default {
           DEFAULT: "hsl(var(--love-pink))",
           light: "hsl(var(--love-pink-light))",
         },
+        // Vibrant pastel colors
+        vibrant: {
+          green: "hsl(var(--fresh-green))",
+          yellow: "hsl(var(--sunny-yellow))",
+          cyan: "hsl(var(--aqua-cyan))",
+          sky: "hsl(var(--sky-blue))",
+          ocean: "hsl(var(--ocean-blue))",
+          purple: "hsl(var(--royal-purple))",
+          pink: "hsl(var(--pink-purple))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

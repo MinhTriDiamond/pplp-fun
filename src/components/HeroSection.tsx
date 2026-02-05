@@ -7,8 +7,9 @@ export function HeroSection() {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 bg-gradient-light" />
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gold/10 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "-3s" }} />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-300/20 rounded-full blur-3xl animate-float" style={{ animationDelay: "-3s" }} />
+      <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-pink-300/15 rounded-full blur-3xl animate-float" style={{ animationDelay: "-1.5s" }} />
       
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 py-20 text-center">
@@ -19,7 +20,7 @@ export function HeroSection() {
         <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
           <span className="text-foreground">Nền Kinh Tế</span>
           <br />
-          <span className="bg-gradient-spiritual bg-clip-text text-transparent">
+          <span className="text-gradient-ocean">
             Ánh Sáng 5D
           </span>
         </h1>
@@ -32,8 +33,8 @@ export function HeroSection() {
         {/* Stats */}
         <div className="flex flex-wrap justify-center gap-8 mb-12">
           <div className="flex items-center gap-2 text-foreground">
-            <div className="p-2 rounded-lg bg-gold/10">
-              <Sparkles className="h-5 w-5 text-gold" />
+            <div className="p-2 rounded-lg bg-cyan-100">
+              <Sparkles className="h-5 w-5 text-cyan-500" />
             </div>
             <div className="text-left">
               <div className="text-2xl font-bold">14</div>
@@ -42,8 +43,8 @@ export function HeroSection() {
           </div>
           
           <div className="flex items-center gap-2 text-foreground">
-            <div className="p-2 rounded-lg bg-purple/10">
-              <Users className="h-5 w-5 text-purple" />
+            <div className="p-2 rounded-lg bg-violet-100">
+              <Users className="h-5 w-5 text-violet-500" />
             </div>
             <div className="text-left">
               <div className="text-2xl font-bold">5</div>
@@ -52,8 +53,8 @@ export function HeroSection() {
           </div>
           
           <div className="flex items-center gap-2 text-foreground">
-            <div className="p-2 rounded-lg bg-earth/10">
-              <Coins className="h-5 w-5 text-earth" />
+            <div className="p-2 rounded-lg bg-green-100">
+              <Coins className="h-5 w-5 text-green-500" />
             </div>
             <div className="text-left">
               <div className="text-2xl font-bold">5M</div>

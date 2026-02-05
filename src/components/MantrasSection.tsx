@@ -5,14 +5,14 @@ export function MantrasSection() {
     <section className="py-20 bg-background relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gold/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-r from-cyan-200/20 via-violet-200/20 to-pink-200/20 rounded-full blur-3xl" />
       </div>
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
             8{" "}
-            <span className="bg-gradient-spiritual bg-clip-text text-transparent">
+            <span className="text-gradient-rainbow">
               Divine Mantras
             </span>
           </h2>

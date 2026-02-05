@@ -217,7 +217,7 @@
   /* Divine mantra styling */
   .mantra-text {
     @apply text-lg italic;
-    background: var(--gradient-spiritual);
+    background: var(--gradient-rainbow);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -234,6 +234,21 @@
     box-shadow: 0 0 20px hsl(263 56% 52% / 0.4),
                 0 0 40px hsl(263 56% 52% / 0.2),
                 0 0 60px hsl(263 56% 52% / 0.1);
+  }
+
+  /* Text gradient utilities */
+  .text-gradient-rainbow {
+    background: var(--gradient-rainbow);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-ocean {
+    background: var(--gradient-ocean);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 
