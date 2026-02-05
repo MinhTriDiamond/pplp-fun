@@ -254,7 +254,8 @@
     "FUN_PLANET": "50000000000000000000000",
     "FUN_TRADING": "50000000000000000000000",
     "RESERVE_BUFFER": "100000000000000000000000",
-    "FUN_WALLET": "0"
+    "FUN_WALLET": "0",
+    "CAMLY_COIN": "200000000000000000000000"
   },
 
   "emergency": {
@@ -695,6 +696,31 @@
           "thresholds": { "T": 80, "minLightScore": 62, "minK": 0.85, "minU": 60 },
           "multipliers": { "Q": [0.9, 1.5], "I": [0.9, 1.8], "K": [0.85, 1.0] },
           "note": "No farm tx. Reward only semantic payments tied to service proof."
+        }
+      }
+    },
+    "CAMLY_COIN": {
+      "name": "Camly Coin — Token of Unity",
+      "description": "Token quan trọng trong FUN Ecosystem, stake để boost Integrity",
+      "icon": "coins",
+      "actions": {
+        "STAKE": {
+          "baseRewardAtomic": "0",
+          "thresholds": { "T": 70, "minLightScore": 60, "minK": 0.6 },
+          "multipliers": { "Q": [1.0, 1.0], "I": [1.0, 1.0], "K": [0.6, 1.0] },
+          "note": "Staking CAMLY không mint FUN trực tiếp, nhưng boost K multiplier"
+        },
+        "LIQUIDITY_PROVIDE": {
+          "baseRewardAtomic": "100000000000000000000",
+          "thresholds": { "T": 80, "minLightScore": 65, "minK": 0.75, "minU": 60 },
+          "multipliers": { "Q": [1.0, 2.0], "I": [1.0, 3.0], "K": [0.75, 1.0] },
+          "unitySignals": { "collaboration": true, "bridgeValue": true }
+        },
+        "HOLD_REWARD": {
+          "baseRewardAtomic": "20000000000000000000",
+          "thresholds": { "T": 70, "minLightScore": 55, "minK": 0.6 },
+          "multipliers": { "Q": [1.0, 1.5], "I": [1.0, 1.5], "K": [0.6, 1.0] },
+          "note": "Reward for long-term CAMLY holders contributing to ecosystem stability"
         }
       }
     }
