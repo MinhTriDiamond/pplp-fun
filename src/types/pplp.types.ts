@@ -14,7 +14,8 @@ export type PlatformId =
   | 'FUN_INVEST' 
   | 'FUNLIFE' 
   | 'FUN_MARKET' 
-  | 'FUN_WALLET';
+   | 'FUN_WALLET'
+   | 'CAMLY_COIN';
 
 export type FraudType = 'BOT' | 'SYBIL' | 'COLLUSION' | 'SPAM' | 'WASH';
 
