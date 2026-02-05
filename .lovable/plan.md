@@ -1,135 +1,148 @@
 
-# Kế hoạch: Gắn Link URL cho Platforms + Thêm Camly Coin
+# Kế hoạch: Nâng cấp màu sắc toàn bộ Page - Vibrant & Fresh Theme
 
 ## Mục tiêu
-- Gắn link URL cho 11 platforms hiện tại để user có thể click vào card và truy cập trực tiếp
-- Thêm platform mới **Camly Coin** vào hệ sinh thái
+- Đổi màu sắc từ tông "gold/purple spiritual" sang tông **tươi sáng, hiện đại** như ảnh tham khảo
+- Áp dụng gradient rainbow/ocean cho các section headers, icons, badges
+- Giữ nền trắng, tăng độ tươi sáng cho toàn bộ UI
 
 ---
 
-## 1. Danh sách Platform + URL
+## 1. Phân tích hiện trạng
 
-| Platform | URL |
-|----------|-----|
-| FUN PROFILE | https://fun.rich |
-| FUN FARM | https://farm.fun.rich |
-| FUN TREASURY | https://treasury.fun.rich |
-| FUN PLAY | https://play.fun.rich |
-| FUN WALLET | https://wallet.fun.rich |
-| FUN PLANET | https://planet.fun.rich |
-| FUN CHARITY | https://charity.fun.rich |
-| FUN GREEN EARTH | https://greenearth-fun.lovable.app |
-| FUN ACADEMY | https://academy.fun.rich |
-| CAMLY COIN | https://camly.co |
-| ANGEL AI | https://angel.fun.rich |
+### Màu sắc hiện tại (cần đổi):
+- **Headers**: `bg-gradient-spiritual` (gold → purple) - cũ, trầm
+- **Icons trong PillarsSection**: `text-love`, `text-purple`, `text-gold`, `text-earth` - phân tán
+- **Cards background**: `bg-gold/10`, `bg-purple/10` - nhạt
+- **Stats icons**: Dùng gold/purple/earth
+- **Footer**: `bg-foreground` (tối) - cần sáng hơn
+
+### Màu sắc mới (tươi sáng):
+- **Headers**: Đổi sang `bg-gradient-rainbow` hoặc `bg-gradient-ocean` - rực rỡ
+- **Icons**: Sử dụng bảng màu vibrant mới (fresh-green, ocean-blue, pink-purple, sunny-yellow)
+- **Section backgrounds**: Thêm gradient nhẹ hoặc patterns tươi sáng
+- **Footer**: Gradient ocean thay vì đen
 
 ---
 
 ## 2. Các file cần chỉnh sửa
 
-### 2.1 Thêm Type mới
-**File:** `src/types/pplp.types.ts`
-- Thêm `'CAMLY_COIN'` vào PlatformId type
+### 2.1 CSS Variables - `src/index.css`
+- Thêm màu vibrant mới vào Tailwind
+- Tạo utility classes cho text gradient rainbow
 
-### 2.2 Thêm URL mapping
-**File:** `src/lib/platform-icons.ts`
-- Thêm object `platformUrls: Record<PlatformId, string>` chứa URL cho từng platform
-- Thêm icon cho CAMLY_COIN (sử dụng icon `Coins` hoặc tương tự)
-- Thêm color cho CAMLY_COIN
+### 2.2 Tailwind Config - `tailwind.config.ts`
+- Thêm màu vibrant mới vào theme.extend.colors
 
-### 2.3 Cập nhật Policy JSON
-**File:** `src/config/pplp-policy-v1.0.2.json`
-- Thêm platform "CAMLY_COIN" với thông tin:
-  - name: "Camly Coin — Token of Unity"
-  - description: "Token quan trọng trong FUN Ecosystem, stake để boost integrity"
-  - icon: "coins"
-  - actions: STAKE, HOLD_REWARD, LIQUIDITY_PROVIDE
+### 2.3 HeroSection - `src/components/HeroSection.tsx`
+- Đổi `bg-gold/10`, `bg-purple/10`, `bg-earth/10` → màu vibrant mới
+- Đổi icon colors sang tông tươi hơn
+- Background decorations dùng gradient rainbow thay vì gold/purple
 
-### 2.4 Cập nhật PlatformCard component
-**File:** `src/components/PlatformCard.tsx`
-- Thêm prop `url: string`
-- Wrap card trong thẻ `<a href={url} target="_blank">` để click mở tab mới
+### 2.4 PillarsSection - `src/components/PillarsSection.tsx`
+- Đổi section background `bg-secondary/30` → gradient nhẹ hoặc pattern tươi sáng
+- Đổi pillar icon colors thành bảng màu vibrant
+- Badge weights dùng gradient rainbow
 
-### 2.5 Cập nhật PlatformsSection
-**File:** `src/components/PlatformsSection.tsx`
-- Truyền URL từ mapping vào mỗi PlatformCard
+### 2.5 PlatformCard - `src/components/PlatformCard.tsx`
+- Card hover effect dùng gradient border
+- Icon backgrounds tươi sáng hơn
 
-### 2.6 Cập nhật PlatformSelector (Simulator)
-**File:** `src/components/simulator/PlatformSelector.tsx`
-- Tự động load CAMLY_COIN từ policy nên không cần sửa nhiều
+### 2.6 DivineMantras - `src/components/DivineMantras.tsx`
+- `.mantra-text` gradient đổi từ spiritual → rainbow
+
+### 2.7 MantrasSection - `src/components/MantrasSection.tsx`
+- Background decoration dùng gradient rainbow thay vì gold
+
+### 2.8 Index page - `src/pages/Index.tsx`
+- Footer đổi từ dark → gradient ocean/rainbow
+- Navigation hover effects tươi sáng hơn
+
+### 2.9 platform-icons.ts - `src/lib/platform-icons.ts`
+- Đổi `platformColors` và `platformBgColors` sang bảng màu vibrant mới
 
 ---
 
 ## 3. Chi tiết kỹ thuật
 
-### 3.1 Platform URLs Object
-```typescript
-export const platformUrls: Record<PlatformId, string> = {
-  FUN_PROFILE: "https://fun.rich",
-  FUN_FARM: "https://farm.fun.rich",
-  FUN_PLAY: "https://play.fun.rich",
-  FUN_WALLET: "https://wallet.fun.rich",
-  FUN_PLANET: "https://planet.fun.rich",
-  FUN_CHARITY: "https://charity.fun.rich",
-  FUN_EARTH: "https://greenearth-fun.lovable.app",
-  FUN_ACADEMY: "https://academy.fun.rich",
-  ANGEL_AI: "https://angel.fun.rich",
-  CAMLY_COIN: "https://camly.co",
-  // Các platform chưa có URL riêng
-  FUN_TRADING: "https://trading.fun.rich",
-  FUN_INVEST: "https://invest.fun.rich",
-  FUN_LEGAL: "https://legal.fun.rich",
-  FUN_MARKET: "https://market.fun.rich",
-  FUNLIFE: "https://life.fun.rich",
-};
-```
+### 3.1 Bảng màu Vibrant mới
 
-### 3.2 PlatformCard cập nhật
-```tsx
-<a href={url} target="_blank" rel="noopener noreferrer">
-  <Card className="group cursor-pointer transition-all ...">
-    {/* existing content */}
-  </Card>
-</a>
-```
+| Tên | HSL | Mô tả |
+|-----|-----|-------|
+| Fresh Green | `142 70% 55%` | Xanh lá tươi |
+| Ocean Cyan | `180 75% 55%` | Xanh ngọc biển |
+| Sky Blue | `200 85% 60%` | Xanh da trời |
+| Royal Blue | `220 80% 60%` | Xanh hoàng gia |
+| Violet | `260 75% 60%` | Tím violet |
+| Pink | `320 80% 65%` | Hồng tươi |
+| Sunny Yellow | `45 90% 60%` | Vàng chanh |
+| Coral | `15 85% 60%` | San hô cam |
 
-### 3.3 CAMLY_COIN trong Policy JSON
-```json
-"CAMLY_COIN": {
-  "name": "Camly Coin — Token of Unity",
-  "description": "Token quan trọng trong FUN Ecosystem, stake để boost K",
-  "icon": "coins",
-  "actions": {
-    "STAKE": {
-      "baseRewardAtomic": "0",
-      "thresholds": { "T": 70, "minLightScore": 60, "minK": 0.6 },
-      "multipliers": { "Q": [1.0, 1.0], "I": [1.0, 1.0], "K": [0.6, 1.0] },
-      "note": "Staking CAMLY không mint FUN trực tiếp, nhưng boost K multiplier"
-    },
-    "LIQUIDITY_PROVIDE": {
-      "baseRewardAtomic": "100000000000000000000",
-      "thresholds": { "T": 80, "minLightScore": 65, "minK": 0.75, "minU": 60 },
-      "multipliers": { "Q": [1.0, 2.0], "I": [1.0, 3.0], "K": [0.75, 1.0] }
-    }
-  }
+### 3.2 Text Gradient utilities (thêm vào index.css)
+
+```css
+.text-gradient-rainbow {
+  background: var(--gradient-rainbow);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-ocean {
+  background: var(--gradient-ocean);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 ```
 
+### 3.3 Pillar colors mới
+
+```typescript
+const pillars = [
+  { id: "S", color: "text-pink-500", bgColor: "bg-pink-100" },      // Service - Hồng
+  { id: "T", color: "text-cyan-500", bgColor: "bg-cyan-100" },      // Truth - Cyan
+  { id: "H", color: "text-yellow-500", bgColor: "bg-yellow-100" },  // Healing - Vàng
+  { id: "C", color: "text-green-500", bgColor: "bg-green-100" },    // Contribution - Xanh lá
+  { id: "U", color: "text-violet-500", bgColor: "bg-violet-100" },  // Unity - Tím
+];
+```
+
+### 3.4 Platform icon colors mới
+
+```typescript
+export const platformColors: Record<PlatformId, string> = {
+  FUN_PROFILE: "text-cyan-500",
+  FUN_FARM: "text-green-500",
+  FUN_PLAY: "text-pink-500",
+  FUN_WALLET: "text-violet-500",
+  FUN_PLANET: "text-blue-500",
+  FUN_CHARITY: "text-rose-500",
+  FUN_EARTH: "text-emerald-500",
+  FUN_ACADEMY: "text-yellow-500",
+  ANGEL_AI: "text-sky-500",
+  CAMLY_COIN: "text-amber-500",
+  // ...
+};
+```
+
+### 3.5 Footer mới
+
+```tsx
+<footer className="py-12 bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 text-white">
+  {/* content */}
+</footer>
+```
+
 ---
 
-## 4. Lưu ý quan trọng
-
-1. **FUN TREASURY**: Không có trong policy hiện tại - Cha sẽ map nó vào FUN_WALLET hoặc tạo mới tùy con muốn
-2. **External Links**: Tất cả link sẽ mở trong tab mới (`target="_blank"`) với `rel="noopener noreferrer"` để bảo mật
-3. **Fallback**: Platform nào chưa có URL sẽ dùng placeholder hoặc không có link
-
----
-
-## 5. Kết quả mong đợi
+## 4. Kết quả mong đợi
 
 Sau khi implement:
-- ✅ User click vào bất kỳ platform card nào sẽ mở trang tương ứng
-- ✅ Camly Coin xuất hiện trong danh sách 16 platforms
-- ✅ Simulator có thể chọn Camly Coin để test scoring
-- ✅ Giao diện đẹp, responsive, có hiệu ứng hover
+- ✅ Toàn bộ trang có màu sắc tươi sáng, hiện đại
+- ✅ Headers và titles dùng gradient rainbow/ocean rực rỡ
+- ✅ Icons có màu vibrant, dễ phân biệt
+- ✅ Cards và sections có background sáng, tạo cảm giác fresh
+- ✅ Footer gradient đẹp mắt thay vì màu tối
+- ✅ Phù hợp với phong cách Web3/Crypto hiện đại
 
