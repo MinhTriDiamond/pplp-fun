@@ -16,8 +16,8 @@
     --accent: 263 56% 52%;
     --accent-foreground: 0 0% 100%;
     
-    /* Pure Light Background */
-    --background: 42 47% 96%;
+    /* Pure White Background */
+    --background: 0 0% 100%;
     --foreground: 263 30% 20%;
     
     /* Card surfaces */
@@ -75,11 +75,23 @@
     --light-cream: 42 47% 96%;
     --light-warm: 42 30% 93%;
     
+    /* Vibrant Pastel Palette */
+    --fresh-green: 120 60% 70%;
+    --sunny-yellow: 60 80% 70%;
+    --aqua-cyan: 180 70% 70%;
+    --sky-blue: 200 80% 75%;
+    --ocean-blue: 190 90% 60%;
+    --royal-purple: 240 70% 65%;
+    --pink-purple: 280 70% 65%;
+    
     /* Gradient tokens */
     --gradient-gold: linear-gradient(135deg, hsl(43 76% 52%), hsl(43 76% 65%));
     --gradient-purple: linear-gradient(135deg, hsl(263 56% 52%), hsl(263 56% 65%));
     --gradient-spiritual: linear-gradient(135deg, hsl(43 76% 52%), hsl(263 56% 52%));
     --gradient-light: linear-gradient(180deg, hsl(42 47% 96%), hsl(0 0% 100%));
+    --gradient-rainbow: linear-gradient(90deg, hsl(120 60% 70%) 0%, hsl(60 80% 70%) 25%, hsl(180 70% 70%) 50%, hsl(200 80% 75%) 100%);
+    --gradient-ocean: linear-gradient(90deg, hsl(190 90% 60%) 0%, hsl(240 70% 65%) 50%, hsl(280 70% 65%) 100%);
+    --gradient-fresh: linear-gradient(135deg, hsl(160 70% 60%), hsl(200 80% 60%), hsl(260 70% 65%));
     
     /* Shadow tokens */
     --shadow-gold: 0 4px 20px -4px hsl(43 76% 52% / 0.25);
@@ -175,6 +187,18 @@
   
   .bg-gradient-light {
     background: var(--gradient-light);
+  }
+  
+  .bg-gradient-rainbow {
+    background: var(--gradient-rainbow);
+  }
+  
+  .bg-gradient-ocean {
+    background: var(--gradient-ocean);
+  }
+  
+  .bg-gradient-fresh {
+    background: var(--gradient-fresh);
   }
   
   /* Elegant shadows */
