@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { HeroSection } from "@/components/HeroSection";
 import { PlatformsSection } from "@/components/PlatformsSection";
 import { PillarsSection } from "@/components/PillarsSection";
@@ -81,6 +82,7 @@ const Index = () => {
             <div className="flex items-center gap-4 text-sm text-white/80">
               <a href="#" className="hover:text-white transition-colors">Policy v1.0.2</a>
               <a href="#" className="hover:text-white transition-colors">Whitepaper</a>
+              <Link to="/contract-docs" className="hover:text-white transition-colors">Contract Docs</Link>
             </div>
           </div>
         </div>
