@@ -67,20 +67,20 @@ const Index = () => {
       </section>
       
       {/* Footer */}
-      <footer className="py-12 bg-foreground text-background">
+      <footer className="py-12 bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 text-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
               <Logo size="sm" />
             </div>
             
-            <p className="text-sm text-background/60">
+            <p className="text-sm text-white/80">
               © 2026 FUN Ecosystem. Nền Kinh Tế Ánh Sáng 5D.
             </p>
             
-            <div className="flex items-center gap-4 text-sm text-background/60">
-              <a href="#" className="hover:text-background transition-colors">Policy v1.0.2</a>
-              <a href="#" className="hover:text-background transition-colors">Whitepaper</a>
+            <div className="flex items-center gap-4 text-sm text-white/80">
+              <a href="#" className="hover:text-white transition-colors">Policy v1.0.2</a>
+              <a href="#" className="hover:text-white transition-colors">Whitepaper</a>
             </div>
           </div>
         </div>

@@ -18,10 +18,10 @@ export function DivineMantras() {
   return (
     <div className="relative max-w-3xl mx-auto">
       {/* Decorative elements */}
-      <div className="absolute -top-4 -left-4 w-8 h-8 text-gold opacity-30">
+      <div className="absolute -top-4 -left-4 w-8 h-8 text-cyan-400 opacity-50">
         <Quote className="w-full h-full" />
       </div>
-      <div className="absolute -bottom-4 -right-4 w-8 h-8 text-gold opacity-30 rotate-180">
+      <div className="absolute -bottom-4 -right-4 w-8 h-8 text-violet-400 opacity-50 rotate-180">
         <Quote className="w-full h-full" />
       </div>
       
@@ -39,7 +39,7 @@ export function DivineMantras() {
             variant="ghost"
             size="icon"
             onClick={goToPrev}
-            className="rounded-full hover:bg-gold/10 hover:text-gold"
+            className="rounded-full hover:bg-cyan-100 hover:text-cyan-500"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
@@ -63,7 +63,7 @@ export function DivineMantras() {
             variant="ghost"
             size="icon"
             onClick={goToNext}
-            className="rounded-full hover:bg-gold/10 hover:text-gold"
+            className="rounded-full hover:bg-violet-100 hover:text-violet-500"
           >
             <ChevronRight className="h-5 w-5" />
           </Button>

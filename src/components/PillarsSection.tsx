@@ -9,8 +9,8 @@ const pillars = [
     description: "Hành động có lợi ích vượt khỏi cái tôi",
     weight: "25%",
     icon: Heart,
-    color: "text-love",
-    bgColor: "bg-love/10",
+    color: "text-pink-500",
+    bgColor: "bg-pink-100",
   },
   {
     id: "T",
@@ -19,8 +19,8 @@ const pillars = [
     description: "Có bằng chứng, có kiểm chứng",
     weight: "20%",
     icon: Eye,
-    color: "text-purple",
-    bgColor: "bg-purple/10",
+    color: "text-cyan-500",
+    bgColor: "bg-cyan-100",
   },
   {
     id: "H",
@@ -29,8 +29,8 @@ const pillars = [
     description: "Tăng hạnh phúc, giảm khổ đau",
     weight: "20%",
     icon: Sparkles,
-    color: "text-gold",
-    bgColor: "bg-gold/10",
+    color: "text-yellow-500",
+    bgColor: "bg-yellow-100",
   },
   {
     id: "C",
@@ -39,8 +39,8 @@ const pillars = [
     description: "Tạo giá trị dài hạn cho cộng đồng",
     weight: "20%",
     icon: Leaf,
-    color: "text-earth",
-    bgColor: "bg-earth/10",
+    color: "text-green-500",
+    bgColor: "bg-green-100",
   },
   {
     id: "U",
@@ -49,19 +49,19 @@ const pillars = [
     description: "Tăng kết nối, hợp tác, cùng thắng",
     weight: "15%",
     icon: Users,
-    color: "text-purple",
-    bgColor: "bg-purple/10",
+    color: "text-violet-500",
+    bgColor: "bg-violet-100",
   },
 ];
 
 export function PillarsSection() {
   return (
-    <section className="py-20 bg-secondary/30">
+    <section className="py-20 bg-gradient-to-b from-cyan-50/50 via-white to-violet-50/50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
             5 Trụ Cột{" "}
-            <span className="bg-gradient-spiritual bg-clip-text text-transparent">
+            <span className="text-gradient-ocean">
               Ánh Sáng
             </span>
           </h2>
@@ -97,7 +97,7 @@ export function PillarsSection() {
                   {pillar.description}
                 </p>
                 
-                <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                <div className={`inline-flex items-center px-3 py-1 rounded-full ${pillar.bgColor} ${pillar.color} text-sm font-medium`}>
                   {pillar.weight}
                 </div>
               </CardContent>
