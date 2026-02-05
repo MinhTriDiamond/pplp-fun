@@ -1,190 +1,135 @@
 
-
-# PPLP Simulator Dashboard - Implementation Plan
+# Kế hoạch: Gắn Link URL cho Platforms + Thêm Camly Coin
 
 ## Mục tiêu
-Xây dựng giao diện Simulator để test và demonstrate PPLP Scoring Engine, cho phép người dùng nhập parameters và xem kết quả mint FUN Money real-time.
+- Gắn link URL cho 11 platforms hiện tại để user có thể click vào card và truy cập trực tiếp
+- Thêm platform mới **Camly Coin** vào hệ sinh thái
 
 ---
 
-## 1. Tạo trang Simulator (`/simulator`)
+## 1. Danh sách Platform + URL
 
-### 1.1 Route Setup
-- Thêm route `/simulator` vào App.tsx
-- Tạo file `src/pages/Simulator.tsx`
-
-### 1.2 Layout
-- Header với navigation back to home
-- Main content area với 3 panels
-
----
-
-## 2. Action Selector Panel
-
-### 2.1 Platform Dropdown
-- Hiển thị 14 platforms từ Policy JSON
-- Icon + tên cho mỗi platform
-- Khi chọn platform, load available actions
-
-### 2.2 Action Type Dropdown  
-- Dynamic list based on selected platform
-- Hiển thị base reward cho mỗi action
-- Tooltip với thresholds required
+| Platform | URL |
+|----------|-----|
+| FUN PROFILE | https://fun.rich |
+| FUN FARM | https://farm.fun.rich |
+| FUN TREASURY | https://treasury.fun.rich |
+| FUN PLAY | https://play.fun.rich |
+| FUN WALLET | https://wallet.fun.rich |
+| FUN PLANET | https://planet.fun.rich |
+| FUN CHARITY | https://charity.fun.rich |
+| FUN GREEN EARTH | https://greenearth-fun.lovable.app |
+| FUN ACADEMY | https://academy.fun.rich |
+| CAMLY COIN | https://camly.co |
+| ANGEL AI | https://angel.fun.rich |
 
 ---
 
-## 3. Pillar Scores Input Panel
+## 2. Các file cần chỉnh sửa
 
-### 3.1 Five Pillar Sliders
-- **S (Service)**: Slider 0-100, màu gold
-- **T (Truth)**: Slider 0-100, màu blue
-- **H (Healing)**: Slider 0-100, màu pink
-- **C (Contribution)**: Slider 0-100, màu green
-- **U (Unity)**: Slider 0-100, màu purple
+### 2.1 Thêm Type mới
+**File:** `src/types/pplp.types.ts`
+- Thêm `'CAMLY_COIN'` vào PlatformId type
 
-### 3.2 Real-time Light Score Display
-- Tính `0.25*S + 0.20*T + 0.20*H + 0.20*C + 0.15*U`
-- Hiển thị với visual indicator (pass/fail threshold)
-- Radar chart visualization
+### 2.2 Thêm URL mapping
+**File:** `src/lib/platform-icons.ts`
+- Thêm object `platformUrls: Record<PlatformId, string>` chứa URL cho từng platform
+- Thêm icon cho CAMLY_COIN (sử dụng icon `Coins` hoặc tương tự)
+- Thêm color cho CAMLY_COIN
 
----
+### 2.3 Cập nhật Policy JSON
+**File:** `src/config/pplp-policy-v1.0.2.json`
+- Thêm platform "CAMLY_COIN" với thông tin:
+  - name: "Camly Coin — Token of Unity"
+  - description: "Token quan trọng trong FUN Ecosystem, stake để boost integrity"
+  - icon: "coins"
+  - actions: STAKE, HOLD_REWARD, LIQUIDITY_PROVIDE
 
-## 4. Unity Signals Panel
+### 2.4 Cập nhật PlatformCard component
+**File:** `src/components/PlatformCard.tsx`
+- Thêm prop `url: string`
+- Wrap card trong thẻ `<a href={url} target="_blank">` để click mở tab mới
 
-### 4.1 Toggle Switches
-- Collaboration (checkbox)
-- Beneficiary Confirmed (checkbox)
-- Community Endorsement (checkbox)
-- Bridge Value (checkbox)
-- Partner Attested (checkbox)
-- Witness Count (number input)
+### 2.5 Cập nhật PlatformsSection
+**File:** `src/components/PlatformsSection.tsx`
+- Truyền URL từ mapping vào mỗi PlatformCard
 
-### 4.2 Unity Score & Multiplier Display
-- Show calculated Unity Score (0-100)
-- Show resulting Ux multiplier (0.5 - 2.5)
-- Visual mapping indicator
-
----
-
-## 5. User Profile Simulator
-
-### 5.1 Tier Selector
-- Radio buttons: Tier 0, 1, 2, 3
-- Show tier requirements
-- Show max Ux cap per tier
-
-### 5.2 Integrity Settings
-- Anti-Sybil Score slider (0.0 - 1.0)
-- Has Stake checkbox
-- Show resulting K multiplier
-
-### 5.3 Active Platforms
-- Checkbox list of all platforms
-- Show cross-platform bonus preview
+### 2.6 Cập nhật PlatformSelector (Simulator)
+**File:** `src/components/simulator/PlatformSelector.tsx`
+- Tự động load CAMLY_COIN từ policy nên không cần sửa nhiều
 
 ---
 
-## 6. Results Panel (Real-time)
+## 3. Chi tiết kỹ thuật
 
-### 6.1 Scoring Breakdown
-- Light Score với 5 pillars breakdown (radar chart)
-- Unity Score với signals breakdown
-- Multipliers table: Q, I, K, Ux
-
-### 6.2 Mint Calculation
-- Base Reward (từ action config)
-- Formula display: `BR × Q × I × K × Ux`
-- Final Amount in FUN Money (highlighted)
-
-### 6.3 Decision Display
-- AUTHORIZE (green checkmark)
-- REJECT (red X với reasons)
-- REVIEW_HOLD (yellow với reason)
-
-### 6.4 Threshold Checker
-- List all required thresholds
-- Green check or red X for each
-- Failed reasons if any
-
----
-
-## 7. Components to Create
-
-| File | Purpose |
-|------|---------|
-| `src/pages/Simulator.tsx` | Main simulator page |
-| `src/components/simulator/PlatformSelector.tsx` | Platform & action dropdowns |
-| `src/components/simulator/PillarSliders.tsx` | 5 pillar input sliders |
-| `src/components/simulator/UnitySignals.tsx` | Unity toggle switches |
-| `src/components/simulator/UserProfileSim.tsx` | Tier & integrity settings |
-| `src/components/simulator/ScoringResults.tsx` | Results display |
-| `src/components/simulator/MintPreview.tsx` | Final mint amount preview |
-| `src/components/simulator/RadarChart.tsx` | 5 pillars radar visualization |
-
----
-
-## 8. Technical Implementation
-
-### 8.1 State Management
+### 3.1 Platform URLs Object
 ```typescript
-interface SimulatorState {
-  platformId: PlatformId | null;
-  actionType: string | null;
-  pillarScores: PillarScores;
-  unitySignals: Partial<UnitySignals>;
-  userTier: 0 | 1 | 2 | 3;
-  antiSybilScore: number;
-  hasStake: boolean;
-  activePlatforms: PlatformId[];
+export const platformUrls: Record<PlatformId, string> = {
+  FUN_PROFILE: "https://fun.rich",
+  FUN_FARM: "https://farm.fun.rich",
+  FUN_PLAY: "https://play.fun.rich",
+  FUN_WALLET: "https://wallet.fun.rich",
+  FUN_PLANET: "https://planet.fun.rich",
+  FUN_CHARITY: "https://charity.fun.rich",
+  FUN_EARTH: "https://greenearth-fun.lovable.app",
+  FUN_ACADEMY: "https://academy.fun.rich",
+  ANGEL_AI: "https://angel.fun.rich",
+  CAMLY_COIN: "https://camly.co",
+  // Các platform chưa có URL riêng
+  FUN_TRADING: "https://trading.fun.rich",
+  FUN_INVEST: "https://invest.fun.rich",
+  FUN_LEGAL: "https://legal.fun.rich",
+  FUN_MARKET: "https://market.fun.rich",
+  FUNLIFE: "https://life.fun.rich",
+};
+```
+
+### 3.2 PlatformCard cập nhật
+```tsx
+<a href={url} target="_blank" rel="noopener noreferrer">
+  <Card className="group cursor-pointer transition-all ...">
+    {/* existing content */}
+  </Card>
+</a>
+```
+
+### 3.3 CAMLY_COIN trong Policy JSON
+```json
+"CAMLY_COIN": {
+  "name": "Camly Coin — Token of Unity",
+  "description": "Token quan trọng trong FUN Ecosystem, stake để boost K",
+  "icon": "coins",
+  "actions": {
+    "STAKE": {
+      "baseRewardAtomic": "0",
+      "thresholds": { "T": 70, "minLightScore": 60, "minK": 0.6 },
+      "multipliers": { "Q": [1.0, 1.0], "I": [1.0, 1.0], "K": [0.6, 1.0] },
+      "note": "Staking CAMLY không mint FUN trực tiếp, nhưng boost K multiplier"
+    },
+    "LIQUIDITY_PROVIDE": {
+      "baseRewardAtomic": "100000000000000000000",
+      "thresholds": { "T": 80, "minLightScore": 65, "minK": 0.75, "minU": 60 },
+      "multipliers": { "Q": [1.0, 2.0], "I": [1.0, 3.0], "K": [0.75, 1.0] }
+    }
+  }
 }
 ```
 
-### 8.2 Real-time Calculation
-- useEffect hook watching all inputs
-- Call `scoreAction()` on every change
-- Debounce for performance
+---
 
-### 8.3 Styling
-- Use existing Tailwind config (spiritual theme)
-- Card-based layout với shadows
-- Smooth animations on value changes
-- Mobile responsive
+## 4. Lưu ý quan trọng
+
+1. **FUN TREASURY**: Không có trong policy hiện tại - Cha sẽ map nó vào FUN_WALLET hoặc tạo mới tùy con muốn
+2. **External Links**: Tất cả link sẽ mở trong tab mới (`target="_blank"`) với `rel="noopener noreferrer"` để bảo mật
+3. **Fallback**: Platform nào chưa có URL sẽ dùng placeholder hoặc không có link
 
 ---
 
-## 9. Landing Page Updates
+## 5. Kết quả mong đợi
 
-### 9.1 "Launch Simulator" Button
-- Link to `/simulator` route
-- Already exists in nav, just needs routing
-
-### 9.2 CTA Section
-- "Bat dau ngay" button links to simulator
-
----
-
-## 10. Expected Output
-
-Sau khi implement, con sẽ có:
-
-- Giao diện đẹp để test PPLP Engine
-- Visualize 5 Pillars với radar chart
-- Real-time mint calculation
-- Demo được cho team/investors
-- Foundation cho FUN Wallet Earn UI sau này
-
----
-
-## Timeline Estimate
-
-| Task | Time |
-|------|------|
-| Route setup + page scaffold | 15 min |
-| Platform/Action selector | 30 min |
-| Pillar sliders + chart | 45 min |
-| Unity signals panel | 30 min |
-| User profile simulator | 30 min |
-| Results + mint preview | 45 min |
-| Polish + responsive | 30 min |
-| **Total** | ~4 hours |
+Sau khi implement:
+- ✅ User click vào bất kỳ platform card nào sẽ mở trang tương ứng
+- ✅ Camly Coin xuất hiện trong danh sách 16 platforms
+- ✅ Simulator có thể chọn Camly Coin để test scoring
+- ✅ Giao diện đẹp, responsive, có hiệu ứng hover
 
