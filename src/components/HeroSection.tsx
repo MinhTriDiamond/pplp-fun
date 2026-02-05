@@ -64,12 +64,12 @@ export function HeroSection() {
         
         {/* CTA Buttons */}
         <div className="flex flex-wrap justify-center gap-4">
-          <Button size="lg" className="bg-gradient-spiritual hover:opacity-90 text-white shadow-gold">
+          <Button size="lg" variant="gradient-rainbow">
             Khám Phá Simulator
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
           
-          <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/5">
+          <Button size="lg" variant="gradient-ocean">
             Đọc Whitepaper
           </Button>
         </div>

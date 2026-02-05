@@ -26,7 +26,7 @@ const Index = () => {
             </a>
           </div>
           
-          <Button size="sm" className="bg-gradient-spiritual hover:opacity-90 text-white">
+          <Button size="sm" variant="gradient-rainbow">
             Launch Simulator
           </Button>
         </div>
@@ -51,7 +51,7 @@ const Index = () => {
       </div>
       
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-spiritual text-white">
+      <section className="py-20 bg-gradient-ocean text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
             Sẵn sàng tham gia Nền Kinh Tế Ánh Sáng?
@@ -59,7 +59,7 @@ const Index = () => {
           <p className="text-white/80 max-w-xl mx-auto mb-8">
             Khám phá PPLP Simulator để hiểu cách hệ thống tính điểm và phân phối FUN Money.
           </p>
-          <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
+          <Button size="lg" variant="gradient-rainbow">
             Bắt đầu ngay
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
