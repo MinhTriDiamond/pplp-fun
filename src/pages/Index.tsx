@@ -5,6 +5,7 @@ import { PillarsSection } from "@/components/PillarsSection";
 import { MantrasSection } from "@/components/MantrasSection";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { MintFunButton } from "@/components/MintFunButton";
 import { ArrowRight } from "lucide-react";
 
 const Index = () => {
@@ -30,9 +31,7 @@ const Index = () => {
             </Link>
           </div>
           
-          <Button size="sm" variant="gradient-rainbow">
-            Launch Simulator
-          </Button>
+          <MintFunButton size="sm" />
         </div>
       </nav>
       
