@@ -9,6 +9,7 @@ import { UnitySignals } from '@/components/simulator/UnitySignals';
 import { UserProfileSim } from '@/components/simulator/UserProfileSim';
 import { ScoringResults } from '@/components/simulator/ScoringResults';
 import { MintPreview } from '@/components/simulator/MintPreview';
+import { WalletConnect } from '@/components/wallet/WalletConnect';
 import { RadarChart } from '@/components/simulator/RadarChart';
 import { 
   scoreAction, 
@@ -129,9 +130,12 @@ export default function Simulator() {
                 </h1>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground hidden md:block">
-              Test & Demonstrate PPLP Scoring Engine
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-muted-foreground hidden md:block">
+                Test & Mint FUN Money
+              </p>
+              <WalletConnect />
+            </div>
           </div>
         </div>
       </header>
@@ -234,6 +238,7 @@ export default function Simulator() {
               result={scoringResult}
               lightScore={lightScore}
               unityScore={unityScore}
+              actionType={actionType}
             />
 
             {/* Scoring Breakdown */}
