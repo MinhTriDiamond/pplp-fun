@@ -15,7 +15,7 @@ export const FUN_MONEY_ABI = [
   'function paused() view returns (bool)',
   
   // Write functions
-  'function lockWithPPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline, bytes signature) external',
+  'function lockWithPPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline, bytes[] signatures) external',
   
   // Events
   'event Transfer(address indexed from, address indexed to, uint256 value)',
