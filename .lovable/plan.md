@@ -1,129 +1,246 @@
 
-# Kế Hoạch: Chuyển Đổi Sang Phong Cách Tươi Sáng Hào Quang Vũ Trụ
+
+# Kế Hoạch: Tích Hợp Mint FUN Money Trực Tiếp Trên Dự Án
 
 ## Mục Tiêu
-Chuyển tất cả tiêu đề, đề mục từ màu tối sang màu tươi sáng rực rỡ, tạo hiệu ứng "tỏa sáng hào quang vũ trụ" cho toàn bộ trang web.
+Cho phép người dùng mint FUN Money thật sự trên blockchain BSC Testnet ngay từ trang Simulator của dự án.
 
 ---
 
-## 1. Các Vị Trí Cần Sửa
-
-### 1.1. Trang Index (`src/pages/Index.tsx`)
-| Dòng | Hiện tại | Chuyển sang |
-|------|----------|-------------|
-| 21 | `text-foreground` (nav links) | `text-cyan-600` |
-
-### 1.2. Hero Section (`src/components/HeroSection.tsx`)
-| Dòng | Hiện tại | Chuyển sang |
-|------|----------|-------------|
-| 21 | `text-foreground` (Nền Kinh Tế) | `text-gradient-rainbow` hoặc `text-cyan-600` |
-| 35, 45, 55 | `text-foreground` (stats numbers) | Màu tương ứng với icon |
-
-### 1.3. Pillars Section (`src/components/PillarsSection.tsx`)
-| Dòng | Hiện tại | Chuyển sang |
-|------|----------|-------------|
-| 62 | "5 Trụ Cột" không có gradient | Thêm `text-gradient-rainbow` |
-| 88 | `font-display text-lg font-semibold` (namevi) | Thêm màu sáng |
-
-### 1.4. Platforms Section (`src/components/PlatformsSection.tsx`)
-| Dòng | Hiện tại | Chuyển sang |
-|------|----------|-------------|
-| 15 | "Hợp Nhất" không có màu | Thêm `text-cyan-600` hoặc gradient |
-
-### 1.5. Documentation Tabs - Overview (`src/components/docs/OverviewTab.tsx`)
-| Dòng | Hiện tại | Chuyển sang |
-|------|----------|-------------|
-| 39 | `text-foreground` (PPLP strong) | `text-cyan-600` |
-| 84 | `text-foreground` (pillar nameVi) | `text-cyan-700` |
-| 91 | `text-foreground` (pillar nameVi) | Màu tương ứng pillar |
-| 118 | `text-foreground` (architecture names) | `text-cyan-700` |
-
-### 1.6. Documentation Tabs - Security (`src/components/docs/SecurityTab.tsx`)
-| Dòng | Hiện tại | Chuyển sang |
-|------|----------|-------------|
-| 156 | `text-red-600` (Circuit Breakers CardTitle) | `text-amber-600` (cảnh báo nhẹ nhàng hơn) |
-| 192 | `text-red-600` (Emergency Pause CardTitle) | `text-amber-600` |
-| 84, 97, 110 | `text-foreground` (Anti-collusion titles) | `text-violet-600`, `text-cyan-600`, `text-amber-600` |
-
-### 1.7. Documentation Tabs - Scoring (`src/components/docs/ScoringTab.tsx`)
-- Kiểm tra các `text-foreground` và chuyển sang màu sáng tương ứng
-
-### 1.8. Documentation Tabs - API (`src/components/docs/ApiTab.tsx`)
-- Kiểm tra các `text-foreground` và chuyển sang màu sáng
-
-### 1.9. Distribution Formula (`src/components/contract/DistributionFormula.tsx`)
-| Dòng | Hiện tại | Chuyển sang |
-|------|----------|-------------|
-| 191, 274, 285, 299 | `text-foreground` (flow names, section titles) | Màu sáng tương ứng |
-
-### 1.10. Contract Docs (`src/pages/ContractDocs.tsx`)
-| Dòng | Hiện tại | Chuyển sang |
-|------|----------|-------------|
-| 87, 104 | `text-foreground` (section titles) | `text-cyan-700` |
-
-### 1.11. Data file (`src/data/docs-data.ts`)
-- Không thay đổi (chỉ data, không phải style)
-
----
-
-## 2. Bảng Màu Tươi Sáng Mới
+## 1. Tổng Quan Kiến Trúc Mint Flow
 
 ```text
-Tiêu đề chính:       text-gradient-rainbow hoặc text-gradient-ocean
-Tiêu đề phụ:         text-cyan-600 / text-cyan-700
-CardTitle:           text-cyan-700 (thay vì text-cyan-700 giữ nguyên)
-Cảnh báo Security:   text-amber-600 (thay vì text-red-600)
-Strong text:         text-cyan-600 / text-violet-600
-Pillar names:        Giữ màu tương ứng từng pillar (pink, cyan, yellow, green, violet)
-Architecture:        text-cyan-700
-Stats numbers:       Màu tương ứng icon
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        MINT FUN MONEY FLOW                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐  │
+│  │ 1. CONNECT  │───▶│ 2. CALCULATE│───▶│ 3. SIGN     │───▶│ 4. MINT     │  │
+│  │ WALLET      │    │ (Simulator) │    │ (Edge Func) │    │ (On-chain)  │  │
+│  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘  │
+│        │                  │                  │                  │          │
+│        ▼                  ▼                  ▼                  ▼          │
+│  MetaMask          PPLP Engine         Attester Key       Smart Contract   │
+│  BSC Testnet       Light Score         EIP-712 Sign       lockWithPPLP     │
+│                    Multipliers         Private Key        0x1aa8...ff2     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Các File Cần Sửa
+## 2. Các Thành Phần Cần Tạo
 
-| File | Số lượng thay đổi | Mô tả |
-|------|-------------------|-------|
-| `src/pages/Index.tsx` | 1 | Nav hover color |
-| `src/components/HeroSection.tsx` | 4 | Hero title, stats |
-| `src/components/PillarsSection.tsx` | 2 | Section title, card names |
-| `src/components/PlatformsSection.tsx` | 1 | "Hợp Nhất" text |
-| `src/components/MantrasSection.tsx` | 1 | Section title |
-| `src/components/docs/OverviewTab.tsx` | 5+ | Strong text, names |
-| `src/components/docs/SecurityTab.tsx` | 6+ | CardTitles, headings |
-| `src/components/docs/ScoringTab.tsx` | 4+ | Titles, headings |
-| `src/components/docs/ApiTab.tsx` | 3+ | Headings |
-| `src/components/docs/MintingTab.tsx` | 3+ | Headings |
-| `src/components/docs/PlatformsTab.tsx` | 2+ | Headings |
-| `src/components/contract/DistributionFormula.tsx` | 5+ | Flow names, titles |
-| `src/pages/ContractDocs.tsx` | 2 | Section titles |
+### 2.1. Frontend Components
 
----
+| File | Mô Tả |
+|------|-------|
+| `src/hooks/useWallet.ts` | Hook kết nối MetaMask, quản lý account |
+| `src/lib/web3.ts` | Cấu hình ethers.js, contract ABI |
+| `src/lib/eip712.ts` | Tạo EIP-712 typed data |
+| `src/components/wallet/WalletConnect.tsx` | Button kết nối ví |
+| `src/components/simulator/MintButton.tsx` | Button mint thật trên Simulator |
 
-## 4. Kết Quả Mong Đợi
+### 2.2. Edge Function (Backend)
 
-Sau khi hoàn thành:
-- Tất cả tiêu đề sẽ có màu tươi sáng (cyan, violet, pink, green, amber)
-- Không còn `text-foreground` cho các tiêu đề chính
-- `text-red-600` trong Security sẽ chuyển sang `text-amber-600` (cảnh báo nhẹ nhàng)
-- Toàn bộ giao diện tỏa sáng hào quang vũ trụ với gradient rainbow và ocean
-- Giữ nguyên chức năng, chỉ thay đổi màu sắc
+| File | Mô Tả |
+|------|-------|
+| `supabase/functions/pplp-sign/index.ts` | Ký signature EIP-712 bằng Attester key |
+| `supabase/config.toml` | Cấu hình edge function |
+
+### 2.3. File Cần Sửa
+
+| File | Thay Đổi |
+|------|----------|
+| `src/pages/Simulator.tsx` | Thêm MintButton, wallet state |
+| `src/components/simulator/MintPreview.tsx` | Thêm real mint flow |
+| `package.json` | Thêm dependency `ethers` |
 
 ---
 
-## 5. Chi Tiết Kỹ Thuật
+## 3. Chi Tiết Kỹ Thuật
 
-### Thay đổi chính:
-- `text-foreground` → `text-cyan-600` / `text-cyan-700` / `text-violet-600`
-- `text-red-600` (Security warnings) → `text-amber-600` / `text-amber-500`
-- Thêm `text-gradient-rainbow` cho tiêu đề section chính
-- Stats numbers: dùng màu tương ứng với icon (cyan-600, violet-600, green-600)
+### 3.1. EIP-712 Domain (Cố định theo Contract)
 
-### Nguyên tắc màu:
-- Cyan: Tiêu đề chính, thông tin trung tính
-- Violet: Governance, Unity, staking
-- Pink: User, Love, Service
-- Green: Success, Contribution, flowing
-- Amber: Cảnh báo nhẹ (thay vì đỏ)
-- Yellow: Healing, Sparkles
+```javascript
+const EIP712_DOMAIN = {
+  name: "FUN Money",
+  version: "1.3.0",
+  chainId: 97,
+  verifyingContract: "0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2"
+};
+
+const PPLP_TYPES = {
+  PPLP: [
+    { name: "recipient", type: "address" },
+    { name: "amount", type: "uint256" },
+    { name: "actionHash", type: "bytes32" },
+    { name: "nonce", type: "uint256" },
+    { name: "deadline", type: "uint256" }
+  ]
+};
+```
+
+### 3.2. Edge Function - PPLP Sign
+
+```typescript
+// supabase/functions/pplp-sign/index.ts
+// 1. Nhận request từ frontend (recipient, amount, actionType)
+// 2. Tính actionHash = keccak256(actionType)
+// 3. Lấy nonce từ contract
+// 4. Set deadline = now + 1 hour
+// 5. Ký EIP-712 bằng ATTESTER_PRIVATE_KEY
+// 6. Trả về signature
+```
+
+### 3.3. Mint Button Flow
+
+```text
+User click "Mint" 
+    │
+    ▼
+Check wallet connected?
+    │
+    ├── No ──▶ Prompt connect MetaMask
+    │
+    └── Yes
+         │
+         ▼
+    Call Edge Function /pplp-sign
+         │
+         ▼
+    Receive { signature, nonce, deadline }
+         │
+         ▼
+    Call contract.lockWithPPLP(
+      recipient,
+      amount,
+      actionHash,
+      nonce,
+      deadline,
+      signature
+    )
+         │
+         ▼
+    Wait for transaction confirmation
+         │
+         ▼
+    Show success + TX hash
+```
+
+---
+
+## 4. Secret Cần Thêm
+
+| Secret Name | Mô Tả |
+|-------------|-------|
+| `ATTESTER_PRIVATE_KEY` | Private key của Angel AI Attester (0x02D5...) |
+
+Đây là key quan trọng dùng để ký các mint request. Con cần thêm key này vào Supabase secrets.
+
+---
+
+## 5. Smart Contract Functions Cần Gọi
+
+### Read Functions
+- `nonces(address user)` - Lấy nonce hiện tại
+- `balanceOf(address user)` - Kiểm tra balance
+
+### Write Functions  
+- `lockWithPPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline, bytes signature)` - Mint FUN
+
+---
+
+## 6. Contract ABI (Minimal)
+
+```javascript
+const FUN_MONEY_ABI = [
+  "function nonces(address) view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)",
+  "function lockWithPPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline, bytes signature) external",
+  "event Transfer(address indexed from, address indexed to, uint256 value)"
+];
+```
+
+---
+
+## 7. Dependency Cần Thêm
+
+```bash
+# Frontend
+npm install ethers
+```
+
+---
+
+## 8. Cấu Trúc File Mới
+
+```text
+src/
+├── hooks/
+│   └── useWallet.ts          # Wallet connection hook
+├── lib/
+│   ├── web3.ts               # Ethers config, contract
+│   └── eip712.ts             # EIP-712 helpers
+├── components/
+│   ├── wallet/
+│   │   └── WalletConnect.tsx # Connect wallet UI
+│   └── simulator/
+│       └── MintButton.tsx    # Real mint button
+supabase/
+├── config.toml               # Edge function config
+└── functions/
+    └── pplp-sign/
+        └── index.ts          # Attester signing endpoint
+```
+
+---
+
+## 9. Flow Test Mint
+
+**Bước 1: Chuẩn bị**
+- Cài MetaMask
+- Thêm BSC Testnet (Chain ID 97)
+- Lấy tBNB từ faucet
+
+**Bước 2: Kết nối ví**
+- Click "Connect Wallet" trên Simulator
+- Approve MetaMask
+
+**Bước 3: Thiết lập Simulator**
+- Chọn Platform (VD: FUN_ACADEMY)
+- Chọn Action (VD: course_complete)
+- Điều chỉnh 5 Trụ Cột
+
+**Bước 4: Mint**
+- Click "MINT FUN MONEY"
+- Backend ký signature
+- MetaMask popup để confirm transaction
+- Đợi confirmation
+
+**Bước 5: Kiểm tra**
+- Xem TX trên BSCScan
+- Kiểm tra FUN balance trong ví
+
+---
+
+## 10. Lưu Ý Bảo Mật
+
+- Private key Attester được lưu trong Supabase Secrets (không lộ ra frontend)
+- Edge function verify request trước khi ký
+- Rate limiting để chống spam
+- Deadline ngắn (1 giờ) để tránh replay attack
+
+---
+
+## 11. Kết Quả Mong Đợi
+
+Sau khi implement:
+- ✅ Button "Connect Wallet" trên Simulator
+- ✅ Hiển thị địa chỉ ví đã kết nối
+- ✅ Button "MINT FUN MONEY" trong MintPreview
+- ✅ Edge function ký signature an toàn
+- ✅ Gọi contract `lockWithPPLP` thành công
+- ✅ Hiển thị TX hash và link BSCScan
+- ✅ Cập nhật balance sau khi mint
+
