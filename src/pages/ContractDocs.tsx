@@ -5,8 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/Logo";
 import { FunctionCard } from "@/components/contract/FunctionCard";
+import { DistributionFormula } from "@/components/contract/DistributionFormula";
 import { readFunctions, writeFunctions, CONTRACT_ADDRESS, BSCSCAN_URL } from "@/data/contract-functions";
-
 const ContractDocs = () => {
   return (
     <div className="min-h-screen bg-background">
@@ -196,6 +196,9 @@ const ContractDocs = () => {
           </div>
         </div>
       </section>
+
+      {/* Distribution Formula Section */}
+      <DistributionFormula />
 
       {/* Footer */}
       <footer className="py-8 bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 text-white">
