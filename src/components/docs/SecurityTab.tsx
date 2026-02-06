@@ -81,12 +81,12 @@ export function SecurityTab() {
             <div className="p-4 bg-violet-50 rounded-lg border border-violet-100">
               <div className="flex items-center gap-2 mb-2">
                 <Ban className="w-5 h-5 text-violet-600" />
-                <h4 className="font-semibold text-foreground">Witness Uniqueness</h4>
+                <h4 className="font-semibold text-violet-700">Witness Uniqueness</h4>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-violet-600/80">
                 {ANTI_COLLUSION_RULES.witnessUniqueness ? "✅ Enabled" : "❌ Disabled"}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-violet-600/70 mt-1">
                 Mỗi witness chỉ được verify 1 lần cho cùng action
               </p>
             </div>
@@ -94,12 +94,12 @@ export function SecurityTab() {
             <div className="p-4 bg-cyan-50 rounded-lg border border-cyan-100">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="w-5 h-5 text-cyan-600" />
-                <h4 className="font-semibold text-foreground">Graph Distance</h4>
+                <h4 className="font-semibold text-cyan-700">Graph Distance</h4>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-cyan-600/80">
                 Min Hops: <strong>{ANTI_COLLUSION_RULES.witnessGraphDistanceMinHops}</strong>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-cyan-600/70 mt-1">
                 Witness phải cách recipient ít nhất 2 hop
               </p>
             </div>
@@ -107,12 +107,12 @@ export function SecurityTab() {
             <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="w-5 h-5 text-amber-600" />
-                <h4 className="font-semibold text-foreground">Penalty</h4>
+                <h4 className="font-semibold text-amber-700">Penalty</h4>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-amber-600/80">
                 Reduce Ux: <strong>-{ANTI_COLLUSION_RULES.penaltyReduceUxBy}</strong>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-amber-600/70 mt-1">
                 Vi phạm sẽ bị giảm Ux multiplier
               </p>
             </div>
@@ -153,7 +153,7 @@ export function SecurityTab() {
       {/* Circuit Breakers */}
       <Card className="bg-white/80 backdrop-blur-sm border-cyan-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
+          <CardTitle className="flex items-center gap-2 text-amber-600">
             <AlertTriangle className="w-5 h-5" />
             Circuit Breakers
           </CardTitle>
@@ -189,7 +189,7 @@ export function SecurityTab() {
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="bg-white/80 backdrop-blur-sm border-cyan-200">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
+            <CardTitle className="flex items-center gap-2 text-amber-600">
               <Lock className="w-5 h-5" />
               Emergency Pause
             </CardTitle>

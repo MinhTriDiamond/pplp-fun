@@ -97,12 +97,12 @@ export function ScoringTab() {
           </div>
           
           <div className="mt-6">
-            <h4 className="font-semibold text-foreground mb-3">Unity Signals & Weights</h4>
+            <h4 className="font-semibold text-violet-700 mb-3">Unity Signals & Weights</h4>
             <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
               {UNITY_SIGNALS.map((signal) => (
                 <div key={signal.signal} className="p-3 bg-violet-50 rounded-lg border border-violet-100">
                   <div className="font-mono text-xs text-violet-600 mb-1">{signal.signal}</div>
-                  <div className="font-semibold text-foreground text-sm">{signal.nameVi}</div>
+                  <div className="font-semibold text-violet-700 text-sm">{signal.nameVi}</div>
                   <Badge variant="outline" className="mt-1 text-xs">
                     Weight: {(signal.weight * 100).toFixed(0)}%
                   </Badge>
@@ -235,7 +235,7 @@ export function ScoringTab() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {Object.entries(QUALITY_SIGNALS).map(([platform, signals]) => (
               <div key={platform} className="p-4 bg-cyan-50 rounded-lg border border-cyan-100">
-                <h4 className="font-semibold text-foreground mb-2">{platform.replace("_", " ")}</h4>
+                <h4 className="font-semibold text-cyan-700 mb-2">{platform.replace("_", " ")}</h4>
                 <div className="space-y-1">
                   {signals.map((signal) => (
                     <Badge key={signal} variant="outline" className="mr-1 mb-1 text-xs">

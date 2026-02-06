@@ -186,10 +186,10 @@ function DistributionTable({ data }: { data: DistributionRow[] | ExampleRow[] })
             >
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
-                  <row.icon className="w-4 h-4 text-muted-foreground" />
+                  <row.icon className="w-4 h-4 text-cyan-500" />
                   <div>
-                    <div className="font-semibold text-foreground">{row.flow}</div>
-                    <div className="text-xs text-muted-foreground">{row.flowVi}</div>
+                    <div className="font-semibold text-cyan-700">{row.flow}</div>
+                    <div className="text-xs text-cyan-600/70">{row.flowVi}</div>
                   </div>
                 </div>
               </TableCell>
@@ -271,10 +271,10 @@ export function DistributionFormula() {
 
             <TabsContent value="basic" className="bg-white rounded-xl shadow-sm border border-border/50 overflow-hidden">
               <div className="p-4 border-b border-border/50 bg-muted/30">
-                <h3 className="font-semibold text-foreground">
+                <h3 className="font-semibold text-cyan-700">
                   Mint FUN Money - Flow cơ bản (3 tầng)
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-cyan-600/80">
                   Khi không có đối tác, FUN chảy trực tiếp đến Partner Pool
                 </p>
               </div>
@@ -283,10 +283,10 @@ export function DistributionFormula() {
 
             <TabsContent value="full" className="bg-white rounded-xl shadow-sm border border-border/50 overflow-hidden">
               <div className="p-4 border-b border-border/50 bg-muted/30">
-                <h3 className="font-semibold text-foreground">
+                <h3 className="font-semibold text-violet-700">
                   Mint FUN Money - Flow đầy đủ (4 tầng)
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-violet-600/80">
                   Flow hoàn chỉnh với User là người nhận cuối cùng
                 </p>
               </div>
@@ -295,10 +295,10 @@ export function DistributionFormula() {
 
             <TabsContent value="example" className="bg-white rounded-xl shadow-sm border border-border/50 overflow-hidden">
               <div className="p-4 border-b border-border/50 bg-muted/30">
-                <h3 className="font-semibold text-foreground">
+                <h3 className="font-semibold text-green-700">
                   Ví dụ: MINT 1.000 FUN
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-green-600/80">
                   User cuối nhận 970,3 FUN (~97%) từ 1.000 FUN ban đầu
                 </p>
               </div>

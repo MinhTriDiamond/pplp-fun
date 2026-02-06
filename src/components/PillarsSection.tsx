@@ -60,12 +60,12 @@ export function PillarsSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-            5 Trụ Cột{" "}
+            <span className="text-gradient-rainbow">5 Trụ Cột</span>{" "}
             <span className="text-gradient-ocean">
               Ánh Sáng
             </span>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-cyan-600 max-w-2xl mx-auto">
             Light Score = 0.25×S + 0.20×T + 0.20×H + 0.20×C + 0.15×U
           </p>
         </div>
@@ -81,11 +81,11 @@ export function PillarsSection() {
                   <pillar.icon className={`h-8 w-8 ${pillar.color}`} />
                 </div>
                 
-                <div className="text-3xl font-bold text-primary mb-1">
+                <div className={`text-3xl font-bold ${pillar.color} mb-1`}>
                   {pillar.id}
                 </div>
                 
-                <h3 className="font-display text-lg font-semibold mb-1">
+                <h3 className={`font-display text-lg font-semibold mb-1 ${pillar.color}`}>
                   {pillar.namevi}
                 </h3>
                 

@@ -35,8 +35,8 @@ export function OverviewTab() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-muted-foreground leading-relaxed">
-            <strong className="text-foreground">Proof of Pure Love Protocol (PPLP)</strong> là giao thức chứng minh 
+          <p className="text-cyan-600/80 leading-relaxed">
+            <strong className="text-cyan-700">Proof of Pure Love Protocol (PPLP)</strong> là giao thức chứng minh 
             các hành động Ánh Sáng trong hệ sinh thái FUN. Thay vì Proof of Work hay Proof of Stake, 
             PPLP xác minh giá trị thực sự mà người dùng đóng góp cho cộng đồng.
           </p>
@@ -88,8 +88,8 @@ export function OverviewTab() {
                     <Icon className={`w-6 h-6 ${pillar.color}`} />
                   </div>
                   <div className={`text-2xl font-bold ${pillar.color} mb-1`}>{pillar.id}</div>
-                  <h4 className="font-semibold text-foreground text-sm">{pillar.nameVi}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">{pillar.name}</p>
+                  <h4 className={`font-semibold text-sm ${pillar.color}`}>{pillar.nameVi}</h4>
+                  <p className="text-xs text-cyan-600/70 mt-1">{pillar.name}</p>
                   <div className={`mt-2 inline-block px-2 py-0.5 rounded-full text-xs font-medium ${pillar.bgColor} ${pillar.color}`}>
                     {pillar.weightPercent}
                   </div>
@@ -115,8 +115,8 @@ export function OverviewTab() {
                 <div className="inline-flex rounded-xl p-3 bg-cyan-100 mb-2">
                   <comp.icon className="w-6 h-6 text-cyan-600" />
                 </div>
-                <h4 className="font-medium text-foreground text-sm mb-1">{comp.name}</h4>
-                <p className="text-xs text-muted-foreground">{comp.description}</p>
+                <h4 className="font-medium text-cyan-700 text-sm mb-1">{comp.name}</h4>
+                <p className="text-xs text-cyan-600/70">{comp.description}</p>
                 {idx < architectureComponents.length - 1 && (
                   <ArrowRight className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-300" />
                 )}
@@ -158,7 +158,7 @@ export function OverviewTab() {
             ))}
           </div>
           
-          <p className="text-sm text-muted-foreground text-center mt-4">
+          <p className="text-sm text-cyan-600 text-center mt-4">
             Mỗi hành động được thu thập bằng chứng → PPLP Engine tính điểm → 
             Attester xác thực và ký → Smart Contract mint FUN Money
           </p>
