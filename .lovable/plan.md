@@ -1,99 +1,120 @@
 
-# Kế Hoạch Sửa Lỗi Mint FUN Money
+# Kế Hoạch: Thêm Pre-Mint Validation
 
 ## Mục Tiêu
-Sửa lỗi "execution reverted" khi gọi hàm `lockWithPPLP` do không khớp ABI giữa frontend và smart contract.
+Thêm kiểm tra điều kiện trước khi mint để hiển thị rõ nguyên nhân lỗi thay vì chỉ báo "execution reverted".
 
 ---
 
-## Nguyên Nhân Gốc
-
-Smart Contract FUN Money v1.3.0 sử dụng **multi-sig attestation** với tham số `signatures` là **mảng (`bytes[]`)**, nhưng frontend đang:
-1. Khai báo ABI sai (`bytes` thay vì `bytes[]`)
-2. Truyền 1 chữ ký đơn lẻ thay vì mảng
-
----
-
-## Các File Cần Sửa
-
-### 1. `src/lib/web3.ts` (dòng 18)
-
-**Trước:**
-```typescript
-'function lockWithPPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline, bytes signature) external'
-```
-
-**Sau:**
-```typescript
-'function lockWithPPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline, bytes[] signatures) external'
-```
-
----
-
-### 2. `src/components/simulator/MintButton.tsx` (dòng 99-106)
-
-**Trước:**
-```typescript
-const tx = await contract.lockWithPPLP(
-  address,
-  amount,
-  actionHash,
-  nonce,
-  deadline,
-  signature
-);
-```
-
-**Sau:**
-```typescript
-const tx = await contract.lockWithPPLP(
-  address,
-  amount,
-  actionHash,
-  nonce,
-  deadline,
-  [signature] // Bọc vào mảng để khớp bytes[]
-);
-```
-
----
-
-## Yêu Cầu Bổ Sung
-
-Để mint thành công, cần đảm bảo:
-
-| Điều kiện | Cách kiểm tra |
-|-----------|---------------|
-| Ví là Attester hợp lệ | Gọi `isAttester(address)` trên BSCScan |
-| Threshold phù hợp | Gọi `threshold()` - nếu = 1 thì 1 chữ ký đủ |
-| Action được đăng ký | Gọi `getActionInfo(actionHash)` |
-| Contract không paused | Gọi `paused()` → false |
-| Epoch cap chưa đạt | Gọi `epochMinted()` < `epochCap()` |
-
----
-
-## Tổng Kết Thay Đổi
+## 1. Các Điều Kiện Cần Kiểm Tra
 
 ```text
-┌───────────────────────────────────────────────────────────┐
-│                    SỬA ABI MISMATCH                       │
-├───────────────────────────────────────────────────────────┤
-│                                                           │
-│  src/lib/web3.ts                                          │
-│  ├── Dòng 18: bytes signature → bytes[] signatures       │
-│                                                           │
-│  src/components/simulator/MintButton.tsx                  │
-│  ├── Dòng 106: signature → [signature]                   │
-│                                                           │
-└───────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     PRE-MINT VALIDATION CHECKLIST                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ✓ Contract paused?           →  paused() = false                           │
+│  ✓ Ví là Attester?            →  isAttester(address) = true                 │
+│  ✓ Threshold hợp lệ?          →  threshold() = 1 (hoặc đủ signatures)       │
+│  ✓ Action đã đăng ký?         →  getActionInfo(actionHash).exists = true    │
+│  ✓ Epoch cap còn dư?          →  epochMinted() < epochCap()                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Kết Quả Mong Đợi
+## 2. Cập Nhật ABI
 
-Sau khi sửa:
-- ABI khớp với smart contract
-- Giao dịch `lockWithPPLP` được gửi đúng format
-- Nếu ví là Attester và threshold = 1 → Mint thành công
-- Hiển thị TX hash và link BSCScan
+Thêm các hàm kiểm tra vào `src/lib/web3.ts`:
+
+```typescript
+// Thêm vào FUN_MONEY_ABI
+'function isAttester(address) view returns (bool)',
+'function threshold() view returns (uint256)',
+'function epochMinted() view returns (uint256)', 
+'function epochCap() view returns (uint256)',
+'function getActionInfo(bytes32 actionHash) view returns (tuple(bool exists, uint256 version))'
+```
+
+---
+
+## 3. Tạo Pre-Mint Checker
+
+Tạo file `src/lib/mint-validator.ts`:
+
+```typescript
+interface MintValidation {
+  canMint: boolean;
+  issues: string[];
+  details: {
+    isPaused: boolean;
+    isAttester: boolean;
+    threshold: number;
+    actionExists: boolean;
+    epochRemaining: bigint;
+  }
+}
+
+async function validateBeforeMint(
+  provider: BrowserProvider,
+  address: string,
+  actionHash: string
+): Promise<MintValidation>
+```
+
+---
+
+## 4. Cập Nhật MintButton
+
+Thêm validation trước khi ký:
+
+```typescript
+// Trước khi sign
+const validation = await validateBeforeMint(provider, address, actionHash);
+
+if (!validation.canMint) {
+  setErrorMessage(validation.issues.join('\n'));
+  setStatus('error');
+  return;
+}
+```
+
+---
+
+## 5. UI Hiển Thị
+
+Thêm panel hiển thị trạng thái các điều kiện:
+
+```text
+┌─────────────────────────────────────┐
+│ Pre-Mint Validation                 │
+├─────────────────────────────────────┤
+│ ✅ Contract Active                  │
+│ ✅ Attester Verified                │
+│ ✅ Threshold: 1                     │
+│ ❌ Action Not Registered            │
+│ ✅ Epoch Cap: 4.5M / 5M FUN         │
+└─────────────────────────────────────┘
+```
+
+---
+
+## 6. File Changes Summary
+
+| File | Thay Đổi |
+|------|----------|
+| `src/lib/web3.ts` | Thêm ABI cho validation functions |
+| `src/lib/mint-validator.ts` | Tạo mới - validation logic |
+| `src/components/simulator/MintButton.tsx` | Thêm pre-validation |
+| `src/components/simulator/MintValidationPanel.tsx` | Tạo mới - UI hiển thị |
+
+---
+
+## 7. Kết Quả Mong Đợi
+
+Sau khi implement:
+- Hiển thị rõ ràng điều kiện nào không đạt
+- Không còn lỗi "execution reverted" mơ hồ
+- Hướng dẫn cụ thể cách khắc phục từng điều kiện
+- Người dùng biết cần đăng ký action trước khi mint
