@@ -1,120 +1,112 @@
 
-# Kế Hoạch: Thêm Pre-Mint Validation
+# Kế Hoạch: Sửa Lỗi Contract Không Tồn Tại
 
-## Mục Tiêu
-Thêm kiểm tra điều kiện trước khi mint để hiển thị rõ nguyên nhân lỗi thay vì chỉ báo "execution reverted".
+## Nguyên Nhân Gốc
 
----
+Địa chỉ contract `0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2` trên BSC Testnet có thể:
+- Chưa được deploy
+- Đã bị xóa hoặc không còn hoạt động
+- Hoặc là địa chỉ placeholder chưa được cập nhật
 
-## 1. Các Điều Kiện Cần Kiểm Tra
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                     PRE-MINT VALIDATION CHECKLIST                           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ✓ Contract paused?           →  paused() = false                           │
-│  ✓ Ví là Attester?            →  isAttester(address) = true                 │
-│  ✓ Threshold hợp lệ?          →  threshold() = 1 (hoặc đủ signatures)       │
-│  ✓ Action đã đăng ký?         →  getActionInfo(actionHash).exists = true    │
-│  ✓ Epoch cap còn dư?          →  epochMinted() < epochCap()                 │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+Khi gọi hàm `paused()` (selector `0x5c975abb`), blockchain trả về dữ liệu trống → ethers.js báo "execution reverted (no data present)".
 
 ---
 
-## 2. Cập Nhật ABI
+## Giải Pháp
 
-Thêm các hàm kiểm tra vào `src/lib/web3.ts`:
+### 1. Thêm Kiểm Tra Contract Tồn Tại
+
+Trước khi gọi các hàm validation, kiểm tra địa chỉ có code không:
 
 ```typescript
-// Thêm vào FUN_MONEY_ABI
-'function isAttester(address) view returns (bool)',
-'function threshold() view returns (uint256)',
-'function epochMinted() view returns (uint256)', 
-'function epochCap() view returns (uint256)',
-'function getActionInfo(bytes32 actionHash) view returns (tuple(bool exists, uint256 version))'
-```
-
----
-
-## 3. Tạo Pre-Mint Checker
-
-Tạo file `src/lib/mint-validator.ts`:
-
-```typescript
-interface MintValidation {
-  canMint: boolean;
-  issues: string[];
-  details: {
-    isPaused: boolean;
-    isAttester: boolean;
-    threshold: number;
-    actionExists: boolean;
-    epochRemaining: bigint;
-  }
-}
-
-async function validateBeforeMint(
-  provider: BrowserProvider,
-  address: string,
-  actionHash: string
-): Promise<MintValidation>
-```
-
----
-
-## 4. Cập Nhật MintButton
-
-Thêm validation trước khi ký:
-
-```typescript
-// Trước khi sign
-const validation = await validateBeforeMint(provider, address, actionHash);
-
-if (!validation.canMint) {
-  setErrorMessage(validation.issues.join('\n'));
-  setStatus('error');
-  return;
+// src/lib/mint-validator.ts
+const code = await provider.getCode(FUN_MONEY_ADDRESS);
+if (code === '0x') {
+  return {
+    canMint: false,
+    issues: ['Contract không tồn tại tại địa chỉ này'],
+    details: [{
+      key: 'contract',
+      label: 'Contract Exists',
+      labelVi: 'Contract tồn tại',
+      passed: false,
+      value: 'Not Deployed',
+      hint: 'Cần deploy contract hoặc cập nhật địa chỉ đúng'
+    }]
+  };
 }
 ```
 
 ---
 
-## 5. UI Hiển Thị
+### 2. Thêm Cấu Hình Contract Address
 
-Thêm panel hiển thị trạng thái các điều kiện:
+Cho phép người dùng nhập địa chỉ contract mới từ Settings:
 
 ```text
-┌─────────────────────────────────────┐
-│ Pre-Mint Validation                 │
-├─────────────────────────────────────┤
-│ ✅ Contract Active                  │
-│ ✅ Attester Verified                │
-│ ✅ Threshold: 1                     │
-│ ❌ Action Not Registered            │
-│ ✅ Epoch Cap: 4.5M / 5M FUN         │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                     Contract Configuration                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  FUN Money Contract Address:                                        │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2                  │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  Status: ⚠️ No code at this address                                │
+│                                                                     │
+│  [ Update Address ]                                                 │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 6. File Changes Summary
+### 3. Cải Thiện Error Messages
+
+Thay vì chỉ hiển thị "Lỗi kết nối - Failed", hiển thị cụ thể:
+
+| Tình huống | Message hiển thị |
+|------------|------------------|
+| Contract không tồn tại | "❌ Contract chưa được deploy tại địa chỉ này" |
+| Network sai | "❌ Vui lòng chuyển sang BSC Testnet (Chain ID: 97)" |
+| ABI không khớp | "❌ ABI không tương thích với contract" |
+
+---
+
+## Các File Cần Sửa
 
 | File | Thay Đổi |
 |------|----------|
-| `src/lib/web3.ts` | Thêm ABI cho validation functions |
-| `src/lib/mint-validator.ts` | Tạo mới - validation logic |
-| `src/components/simulator/MintButton.tsx` | Thêm pre-validation |
-| `src/components/simulator/MintValidationPanel.tsx` | Tạo mới - UI hiển thị |
+| `src/lib/mint-validator.ts` | Thêm kiểm tra `getCode()` trước khi validate |
+| `src/lib/web3.ts` | Thêm helper `checkContractExists()` |
+| `src/components/simulator/MintValidationPanel.tsx` | Cải thiện UI hiển thị lỗi |
+| `src/components/simulator/ContractSettings.tsx` | Tạo mới - cho phép cấu hình địa chỉ |
 
 ---
 
-## 7. Kết Quả Mong Đợi
+## Hướng Dẫn Tiếp Theo Cho Con
+
+Sau khi sửa, con cần:
+
+1. **Xác minh contract đã deploy:** 
+   - Truy cập https://testnet.bscscan.com/address/0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2
+   - Kiểm tra tab "Contract" có code không
+
+2. **Nếu chưa deploy:**
+   - Làm theo hướng dẫn trong `docs/FUNMoney-Deploy-Guide.md`
+   - Sau khi deploy, copy địa chỉ mới và cập nhật vào app
+
+3. **Nếu đã deploy:**
+   - Copy đúng địa chỉ từ BSCScan
+   - Cập nhật vào Contract Settings trong Simulator
+
+---
+
+## Kết Quả Mong Đợi
 
 Sau khi implement:
-- Hiển thị rõ ràng điều kiện nào không đạt
-- Không còn lỗi "execution reverted" mơ hồ
-- Hướng dẫn cụ thể cách khắc phục từng điều kiện
-- Người dùng biết cần đăng ký action trước khi mint
+- Hiển thị rõ ràng khi contract không tồn tại
+- Cho phép cập nhật địa chỉ contract từ UI
+- Hướng dẫn cụ thể các bước cần làm tiếp theo
+- Không còn lỗi mơ hồ "execution reverted"
