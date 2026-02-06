@@ -25,6 +25,9 @@ const Index = () => {
             <a href="#mantras" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Mantras
             </a>
+            <Link to="/documentation" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Documentation
+            </Link>
           </div>
           
           <Button size="sm" variant="gradient-rainbow">
@@ -80,8 +83,8 @@ const Index = () => {
             </p>
             
             <div className="flex items-center gap-4 text-sm text-white/80">
-              <a href="#" className="hover:text-white transition-colors">Policy v1.0.2</a>
-              <a href="#" className="hover:text-white transition-colors">Whitepaper</a>
+              <Link to="/documentation" className="hover:text-white transition-colors">Documentation</Link>
+              <Link to="/simulator" className="hover:text-white transition-colors">Simulator</Link>
               <Link to="/contract-docs" className="hover:text-white transition-colors">Contract Docs</Link>
             </div>
           </div>
