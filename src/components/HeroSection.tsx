@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { ArrowRight, Sparkles, Users, Coins } from "lucide-react";
+import { Sparkles, Users, Coins } from "lucide-react";
+import { MintFunButton } from "@/components/MintFunButton";
 
 export function HeroSection() {
   return (
@@ -65,10 +66,7 @@ export function HeroSection() {
         
         {/* CTA Buttons */}
         <div className="flex flex-wrap justify-center gap-4">
-          <Button size="lg" variant="gradient-rainbow">
-            Khám Phá Simulator
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <MintFunButton size="xl" />
           
           <Button size="lg" variant="gradient-ocean">
             Đọc Whitepaper
