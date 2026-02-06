@@ -8,17 +8,20 @@ import {
   AlertCircle, 
   RefreshCw,
   Shield,
-  Loader2
+  Loader2,
+  ExternalLink
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { validateBeforeMint, type MintValidation, type ValidationDetail } from '@/lib/mint-validator';
+import { BSC_TESTNET_CONFIG } from '@/lib/web3';
 
 interface MintValidationPanelProps {
   actionType: string | null;
   onValidationComplete?: (validation: MintValidation | null) => void;
+  refreshTrigger?: number;
 }
 
-export function MintValidationPanel({ actionType, onValidationComplete }: MintValidationPanelProps) {
+export function MintValidationPanel({ actionType, onValidationComplete, refreshTrigger }: MintValidationPanelProps) {
   const { isConnected, isCorrectChain, address, provider } = useWallet();
   const [validation, setValidation] = useState<MintValidation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +48,7 @@ export function MintValidationPanel({ actionType, onValidationComplete }: MintVa
     }
   };
 
-  // Auto-run validation when action changes
+  // Auto-run validation when action changes or refresh triggered
   useEffect(() => {
     if (canValidate) {
       runValidation();
@@ -53,7 +56,7 @@ export function MintValidationPanel({ actionType, onValidationComplete }: MintVa
       setValidation(null);
       onValidationComplete?.(null);
     }
-  }, [actionType, address, isConnected, isCorrectChain]);
+  }, [actionType, address, isConnected, isCorrectChain, refreshTrigger]);
 
   // Don't show if not connected
   if (!isConnected || !isCorrectChain) {
@@ -95,6 +98,22 @@ export function MintValidationPanel({ actionType, onValidationComplete }: MintVa
             {validation.details.map((detail) => (
               <ValidationRow key={detail.key} detail={detail} />
             ))}
+            
+            {/* Contract Address Link */}
+            {validation.contractAddress && (
+              <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg text-xs">
+                <span className="text-muted-foreground">Contract:</span>
+                <a 
+                  href={`${BSC_TESTNET_CONFIG.explorerUrl}/address/${validation.contractAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-cyan-600 hover:text-cyan-700 font-mono"
+                >
+                  {validation.contractAddress.slice(0, 10)}...
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            )}
             
             {/* Summary */}
             <div className={`mt-3 p-3 rounded-lg text-sm ${

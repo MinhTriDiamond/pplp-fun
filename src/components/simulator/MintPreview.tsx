@@ -5,6 +5,7 @@ import { CheckCircle2, XCircle, Clock, Coins } from 'lucide-react';
 import { formatFunAmount } from '@/lib/pplp-engine';
 import { MintButton } from '@/components/simulator/MintButton';
 import { MintValidationPanel } from '@/components/simulator/MintValidationPanel';
+import { ContractSettings } from '@/components/simulator/ContractSettings';
 import type { ScoringResult, MintDecision } from '@/types/pplp.types';
 import type { MintValidation } from '@/lib/mint-validator';
 
@@ -43,10 +44,19 @@ const decisionConfig: Record<MintDecision, {
 
 export function MintPreview({ result, lightScore, unityScore, actionType }: MintPreviewProps) {
   const [validation, setValidation] = useState<MintValidation | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  const handleAddressChange = () => {
+    // Trigger re-validation when contract address changes
+    setRefreshTrigger(prev => prev + 1);
+  };
   
   if (!result) {
     return (
       <div className="space-y-4">
+        {/* Contract Settings */}
+        <ContractSettings onAddressChange={handleAddressChange} />
+        
         <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -68,6 +78,7 @@ export function MintPreview({ result, lightScore, unityScore, actionType }: Mint
         <MintValidationPanel 
           actionType={actionType} 
           onValidationComplete={setValidation}
+          refreshTrigger={refreshTrigger}
         />
       </div>
     );
@@ -154,10 +165,14 @@ export function MintPreview({ result, lightScore, unityScore, actionType }: Mint
           </div>
         </div>
 
+        {/* Contract Settings */}
+        <ContractSettings onAddressChange={handleAddressChange} />
+        
         {/* Validation Panel */}
         <MintValidationPanel 
           actionType={actionType} 
           onValidationComplete={setValidation}
+          refreshTrigger={refreshTrigger}
         />
 
         {/* Mint Button */}

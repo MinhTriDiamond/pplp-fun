@@ -1,7 +1,28 @@
 import { Contract, BrowserProvider, keccak256, toUtf8Bytes } from 'ethers';
 
-// Contract addresses
-export const FUN_MONEY_ADDRESS = '0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2';
+// Contract storage key
+const CONTRACT_ADDRESS_KEY = 'fun_money_contract_address';
+
+// Default contract address
+export const DEFAULT_FUN_MONEY_ADDRESS = '0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2';
+
+// Get current contract address (from localStorage or default)
+export function getFunMoneyAddress(): string {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(CONTRACT_ADDRESS_KEY) || DEFAULT_FUN_MONEY_ADDRESS;
+  }
+  return DEFAULT_FUN_MONEY_ADDRESS;
+}
+
+// Set contract address
+export function setFunMoneyAddress(address: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(CONTRACT_ADDRESS_KEY, address);
+  }
+}
+
+// Legacy export for compatibility
+export const FUN_MONEY_ADDRESS = getFunMoneyAddress();
 
 // Minimal ABI for FUN Money contract
 export const FUN_MONEY_ABI = [
@@ -79,4 +100,25 @@ export function formatFunDisplay(amountAtomic: bigint): string {
   // Show 2 decimal places
   const fractionStr = fraction.toString().padStart(Number(decimals), '0').slice(0, 2);
   return `${whole.toLocaleString()}.${fractionStr} FUN`;
+}
+
+// Check if contract exists at address
+export async function checkContractExists(provider: BrowserProvider, address: string): Promise<{
+  exists: boolean;
+  code: string;
+}> {
+  try {
+    const code = await provider.getCode(address);
+    return {
+      exists: code !== '0x' && code !== '0x0' && code.length > 2,
+      code
+    };
+  } catch {
+    return { exists: false, code: '0x' };
+  }
+}
+
+// Validate Ethereum address format
+export function isValidAddress(address: string): boolean {
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
 }
