@@ -14,6 +14,13 @@ export const FUN_MONEY_ABI = [
   'function nonces(address user) view returns (uint256)',
   'function paused() view returns (bool)',
   
+  // Validation functions
+  'function isAttester(address) view returns (bool)',
+  'function threshold() view returns (uint256)',
+  'function epochMinted() view returns (uint256)',
+  'function epochCap() view returns (uint256)',
+  'function getActionInfo(bytes32 actionHash) view returns (bool exists, uint256 version)',
+  
   // Write functions
   'function lockWithPPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline, bytes[] signatures) external',
   
