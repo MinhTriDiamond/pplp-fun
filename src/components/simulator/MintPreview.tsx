@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, Clock, Coins } from 'lucide-react';
 import { formatFunAmount } from '@/lib/pplp-engine';
 import { MintButton } from '@/components/simulator/MintButton';
+import { MintValidationPanel } from '@/components/simulator/MintValidationPanel';
 import type { ScoringResult, MintDecision } from '@/types/pplp.types';
+import type { MintValidation } from '@/lib/mint-validator';
 
 interface MintPreviewProps {
   result: ScoringResult | null;
@@ -39,24 +42,34 @@ const decisionConfig: Record<MintDecision, {
 };
 
 export function MintPreview({ result, lightScore, unityScore, actionType }: MintPreviewProps) {
+  const [validation, setValidation] = useState<MintValidation | null>(null);
+  
   if (!result) {
     return (
-      <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Coins className="h-5 w-5 text-primary" />
-            Mint Preview
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center py-8">
-          <div className="text-4xl font-bold text-muted-foreground/50 mb-2">
-            0 FUN
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Chọn action để xem số FUN Money có thể mint
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Coins className="h-5 w-5 text-primary" />
+              Mint Preview
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-center py-8">
+            <div className="text-4xl font-bold text-muted-foreground/50 mb-2">
+              0 FUN
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Chọn action để xem số FUN Money có thể mint
+            </p>
+          </CardContent>
+        </Card>
+        
+        {/* Validation Panel */}
+        <MintValidationPanel 
+          actionType={actionType} 
+          onValidationComplete={setValidation}
+        />
+      </div>
     );
   }
 
@@ -141,9 +154,19 @@ export function MintPreview({ result, lightScore, unityScore, actionType }: Mint
           </div>
         </div>
 
+        {/* Validation Panel */}
+        <MintValidationPanel 
+          actionType={actionType} 
+          onValidationComplete={setValidation}
+        />
+
         {/* Mint Button */}
         <div className="pt-2">
-          <MintButton result={result} actionType={actionType} />
+          <MintButton 
+            result={result} 
+            actionType={actionType} 
+            disabled={!validation?.canMint}
+          />
         </div>
       </CardContent>
     </Card>
