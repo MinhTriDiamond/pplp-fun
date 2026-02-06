@@ -32,7 +32,7 @@ export interface PPLPData {
 export function getEip712Domain(): TypedDataDomain {
   return {
     name: "FUN Money",
-    version: "1.2.1",
+    version: "1.3.0", // Must match contract's EIP-712 domain version
     chainId: BSC_TESTNET_CONFIG.chainId,
     verifyingContract: getFunMoneyAddress(),
   };
