@@ -18,7 +18,7 @@ export function HeroSection() {
         </div>
         
         <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
-          <span className="text-foreground">Nền Kinh Tế</span>
+          <span className="text-gradient-rainbow">Nền Kinh Tế</span>
           <br />
           <span className="text-gradient-ocean">
             Ánh Sáng 5D
@@ -32,32 +32,32 @@ export function HeroSection() {
         
         {/* Stats */}
         <div className="flex flex-wrap justify-center gap-8 mb-12">
-          <div className="flex items-center gap-2 text-foreground">
+          <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-cyan-100">
               <Sparkles className="h-5 w-5 text-cyan-500" />
             </div>
             <div className="text-left">
-              <div className="text-2xl font-bold">14</div>
+              <div className="text-2xl font-bold text-cyan-600">14</div>
               <div className="text-xs text-muted-foreground">Platforms</div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2 text-foreground">
+          <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-violet-100">
               <Users className="h-5 w-5 text-violet-500" />
             </div>
             <div className="text-left">
-              <div className="text-2xl font-bold">5</div>
+              <div className="text-2xl font-bold text-violet-600">5</div>
               <div className="text-xs text-muted-foreground">Pillars of Light</div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2 text-foreground">
+          <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-green-100">
               <Coins className="h-5 w-5 text-green-500" />
             </div>
             <div className="text-left">
-              <div className="text-2xl font-bold">5M</div>
+              <div className="text-2xl font-bold text-green-600">5M</div>
               <div className="text-xs text-muted-foreground">FUN/Day Cap</div>
             </div>
           </div>

@@ -16,16 +16,16 @@ const Index = () => {
           <Logo size="sm" />
           
           <div className="hidden md:flex items-center gap-6">
-            <a href="#platforms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#platforms" className="text-sm text-muted-foreground hover:text-cyan-500 transition-colors">
               Platforms
             </a>
-            <a href="#pillars" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#pillars" className="text-sm text-muted-foreground hover:text-violet-500 transition-colors">
               5 Pillars
             </a>
-            <a href="#mantras" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#mantras" className="text-sm text-muted-foreground hover:text-pink-500 transition-colors">
               Mantras
             </a>
-            <Link to="/documentation" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/documentation" className="text-sm text-muted-foreground hover:text-cyan-500 transition-colors">
               Documentation
             </Link>
           </div>

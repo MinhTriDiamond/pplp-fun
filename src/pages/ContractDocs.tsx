@@ -84,10 +84,10 @@ const ContractDocs = () => {
 
             <TabsContent value="read" className="space-y-4">
               <div className="text-center mb-6">
-                <h2 className="text-xl font-semibold text-foreground mb-2">
+                <h2 className="text-xl font-semibold text-cyan-700 mb-2">
                   Read Contract Functions
                 </h2>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-cyan-600/80 text-sm">
                   Các hàm chỉ đọc dữ liệu, không tốn gas, không thay đổi state blockchain
                 </p>
               </div>
@@ -101,10 +101,10 @@ const ContractDocs = () => {
 
             <TabsContent value="write" className="space-y-4">
               <div className="text-center mb-6">
-                <h2 className="text-xl font-semibold text-foreground mb-2">
+                <h2 className="text-xl font-semibold text-orange-600 mb-2">
                   Write Contract Functions
                 </h2>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-orange-500/80 text-sm">
                   Các hàm thay đổi state blockchain, yêu cầu gas và chữ ký từ ví
                 </p>
               </div>
