@@ -2,12 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, Clock, Coins } from 'lucide-react';
 import { formatFunAmount } from '@/lib/pplp-engine';
+import { MintButton } from '@/components/simulator/MintButton';
 import type { ScoringResult, MintDecision } from '@/types/pplp.types';
 
 interface MintPreviewProps {
   result: ScoringResult | null;
   lightScore: number;
   unityScore: number;
+  actionType: string | null;
 }
 
 const decisionConfig: Record<MintDecision, { 
@@ -36,7 +38,7 @@ const decisionConfig: Record<MintDecision, {
   },
 };
 
-export function MintPreview({ result, lightScore, unityScore }: MintPreviewProps) {
+export function MintPreview({ result, lightScore, unityScore, actionType }: MintPreviewProps) {
   if (!result) {
     return (
       <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
@@ -137,6 +139,11 @@ export function MintPreview({ result, lightScore, unityScore }: MintPreviewProps
             <div className="text-xs text-muted-foreground">Unity Score</div>
             <div className="font-bold">{unityScore}</div>
           </div>
+        </div>
+
+        {/* Mint Button */}
+        <div className="pt-2">
+          <MintButton result={result} actionType={actionType} />
         </div>
       </CardContent>
     </Card>
