@@ -95,14 +95,14 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
       // Get contract with signer
       const contract = await getFunMoneyContractWithSigner(provider);
 
-      // Call lockWithPPLP
+      // Call lockWithPPLP (wrap signature in array for multi-sig ABI)
       const tx = await contract.lockWithPPLP(
         address,
         amount,
         actionHash,
         nonce,
         deadline,
-        signature
+        [signature] // bytes[] signatures
       );
 
       // Wait for transaction confirmation
