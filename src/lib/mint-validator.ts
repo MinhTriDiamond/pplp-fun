@@ -1,5 +1,5 @@
 import { BrowserProvider, Contract } from 'ethers';
-import { FUN_MONEY_ADDRESS, FUN_MONEY_ABI, createActionHash } from './web3';
+import { getFunMoneyAddress, FUN_MONEY_ABI, createActionHash, checkContractExists, BSC_TESTNET_CONFIG } from './web3';
 
 export interface ValidationDetail {
   key: string;
@@ -14,6 +14,7 @@ export interface MintValidation {
   canMint: boolean;
   issues: string[];
   details: ValidationDetail[];
+  contractAddress: string;
 }
 
 export async function validateBeforeMint(
@@ -21,14 +22,54 @@ export async function validateBeforeMint(
   address: string,
   actionType: string
 ): Promise<MintValidation> {
-  const contract = new Contract(FUN_MONEY_ADDRESS, FUN_MONEY_ABI, provider);
+  const contractAddress = getFunMoneyAddress();
   const actionHash = createActionHash(actionType);
   
   const issues: string[] = [];
   const details: ValidationDetail[] = [];
 
   try {
-    // 1. Check if contract is paused
+    // 0. Check network first
+    const network = await provider.getNetwork();
+    const chainId = Number(network.chainId);
+    const correctNetwork = chainId === BSC_TESTNET_CONFIG.chainId;
+    
+    details.push({
+      key: 'network',
+      label: 'Network',
+      labelVi: 'Mạng blockchain',
+      passed: correctNetwork,
+      value: correctNetwork ? 'BSC Testnet ✓' : `Chain ID: ${chainId}`,
+      hint: !correctNetwork ? `Vui lòng chuyển sang BSC Testnet (Chain ID: ${BSC_TESTNET_CONFIG.chainId})` : undefined
+    });
+    
+    if (!correctNetwork) {
+      issues.push(`❌ Sai mạng. Cần BSC Testnet (Chain ID: ${BSC_TESTNET_CONFIG.chainId})`);
+      return { canMint: false, issues, details, contractAddress };
+    }
+
+    // 1. Check if contract exists at address
+    const { exists: contractExists } = await checkContractExists(provider, contractAddress);
+    
+    details.push({
+      key: 'contract',
+      label: 'Contract Exists',
+      labelVi: 'Contract tồn tại',
+      passed: contractExists,
+      value: contractExists ? 'Deployed ✓' : 'Not Found',
+      hint: !contractExists ? `Không tìm thấy contract tại ${contractAddress.slice(0, 10)}...` : undefined
+    });
+    
+    if (!contractExists) {
+      issues.push('❌ Contract chưa được deploy tại địa chỉ này');
+      issues.push('💡 Hãy deploy contract hoặc cập nhật địa chỉ trong Settings');
+      return { canMint: false, issues, details, contractAddress };
+    }
+
+    // Create contract instance after confirming it exists
+    const contract = new Contract(contractAddress, FUN_MONEY_ABI, provider);
+
+    // 2. Check if contract is paused
     const isPaused = await contract.paused();
     details.push({
       key: 'paused',
@@ -42,7 +83,7 @@ export async function validateBeforeMint(
       issues.push('❌ Contract đang bị PAUSE, không thể mint');
     }
 
-    // 2. Check if wallet is attester
+    // 3. Check if wallet is attester
     const isAttester = await contract.isAttester(address);
     details.push({
       key: 'attester',
@@ -56,7 +97,7 @@ export async function validateBeforeMint(
       issues.push('❌ Ví chưa được đăng ký làm Attester');
     }
 
-    // 3. Check threshold
+    // 4. Check threshold
     const threshold = await contract.threshold();
     const thresholdNum = Number(threshold);
     const thresholdOk = thresholdNum === 1;
@@ -72,7 +113,7 @@ export async function validateBeforeMint(
       issues.push(`❌ Contract yêu cầu ${thresholdNum} chữ ký (multi-sig)`);
     }
 
-    // 4. Check if action is registered
+    // 5. Check if action is registered
     let actionExists = false;
     try {
       const actionInfo = await contract.getActionInfo(actionHash);
@@ -93,7 +134,7 @@ export async function validateBeforeMint(
       issues.push(`❌ Action "${actionType}" chưa được đăng ký`);
     }
 
-    // 5. Check epoch cap
+    // 6. Check epoch cap
     const epochMinted = await contract.epochMinted();
     const epochCap = await contract.epochCap();
     const remaining = epochCap - epochMinted;
@@ -115,26 +156,39 @@ export async function validateBeforeMint(
     return {
       canMint: issues.length === 0,
       issues,
-      details
+      details,
+      contractAddress
     };
 
   } catch (err: any) {
     console.error('Validation error:', err);
     
+    // Detect specific error types
+    let errorMessage = err.message || 'Unknown error';
+    let errorHint = 'Không thể đọc dữ liệu từ contract';
+    
+    if (errorMessage.includes('no data present') || errorMessage.includes('BAD_DATA')) {
+      errorHint = 'Contract không tương thích với ABI hoặc chưa được deploy';
+    } else if (errorMessage.includes('network')) {
+      errorHint = 'Lỗi kết nối mạng. Hãy thử lại sau.';
+    }
+    
     // Return partial results with error
     return {
       canMint: false,
-      issues: [`❌ Lỗi kiểm tra: ${err.message?.slice(0, 50) || 'Unknown error'}`],
+      issues: [`❌ Lỗi kiểm tra: ${errorMessage.slice(0, 80)}`],
       details: [
+        ...details,
         {
           key: 'error',
           label: 'Connection Error',
           labelVi: 'Lỗi kết nối',
           passed: false,
           value: 'Failed',
-          hint: 'Không thể đọc dữ liệu từ contract'
+          hint: errorHint
         }
-      ]
+      ],
+      contractAddress
     };
   }
 }
