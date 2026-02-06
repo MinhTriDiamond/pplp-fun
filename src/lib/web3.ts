@@ -24,30 +24,39 @@ export function setFunMoneyAddress(address: string): void {
 // Legacy export for compatibility
 export const FUN_MONEY_ADDRESS = getFunMoneyAddress();
 
-// Minimal ABI for FUN Money contract
+// ABI for FUN Money Production v1.2.1 contract (matching deployed contract on BSC Testnet)
 export const FUN_MONEY_ABI = [
-  // Read functions
+  // Read functions - Basic ERC20
   'function name() view returns (string)',
   'function symbol() view returns (string)',
   'function decimals() view returns (uint8)',
   'function totalSupply() view returns (uint256)',
   'function balanceOf(address account) view returns (uint256)',
   'function nonces(address user) view returns (uint256)',
-  'function paused() view returns (bool)',
   
-  // Validation functions
+  // Read functions - PPLP specific (v1.2.1 naming convention)
+  'function pauseTransitions() view returns (bool)',  // NOT paused()
   'function isAttester(address) view returns (bool)',
-  'function threshold() view returns (uint256)',
-  'function epochMinted() view returns (uint256)',
-  'function epochCap() view returns (uint256)',
-  'function getActionInfo(bytes32 actionHash) view returns (bool exists, uint256 version)',
+  'function attesterThreshold() view returns (uint256)',  // NOT threshold()
+  'function epochMintCap() view returns (uint256)',  // NOT epochCap()
+  'function epochs(uint256) view returns (uint256)',  // epoch data
+  'function epochDuration() view returns (uint256)',
+  'function actions(bytes32) view returns (bool exists, uint256 version, bool deprecated)',
+  'function guardianGov() view returns (address)',
+  'function communityPool() view returns (address)',
+  'function alloc(address) view returns (uint256 locked, uint256 activated)',
+  'function totalActivated() view returns (uint256)',
   
   // Write functions
   'function lockWithPPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline, bytes[] signatures) external',
+  'function activate(uint256 amount) external',
+  'function claim(uint256 amount) external',
   
   // Events
   'event Transfer(address indexed from, address indexed to, uint256 value)',
-  'event Locked(address indexed recipient, uint256 amount, bytes32 actionHash)'
+  'event Locked(address indexed recipient, uint256 amount, bytes32 actionHash)',
+  'event Activated(address indexed user, uint256 amount)',
+  'event Claimed(address indexed user, uint256 amount)'
 ];
 
 // BSC Testnet config
@@ -59,15 +68,17 @@ export const BSC_TESTNET_CONFIG = {
   explorerTxUrl: (txHash: string) => `https://testnet.bscscan.com/tx/${txHash}`
 };
 
-// Create contract instance
+// Create contract instance - always fetch fresh address
 export function getFunMoneyContract(provider: BrowserProvider) {
-  return new Contract(FUN_MONEY_ADDRESS, FUN_MONEY_ABI, provider);
+  const address = getFunMoneyAddress(); // Dynamic fetch
+  return new Contract(address, FUN_MONEY_ABI, provider);
 }
 
 // Get contract with signer for write operations
 export async function getFunMoneyContractWithSigner(provider: BrowserProvider) {
   const signer = await provider.getSigner();
-  return new Contract(FUN_MONEY_ADDRESS, FUN_MONEY_ABI, signer);
+  const address = getFunMoneyAddress(); // Dynamic fetch
+  return new Contract(address, FUN_MONEY_ABI, signer);
 }
 
 // Helper to get nonce for an address
