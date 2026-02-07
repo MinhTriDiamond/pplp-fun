@@ -17,6 +17,7 @@ interface MintPreviewProps {
   lightScore: number;
   unityScore: number;
   actionType: string | null;
+  platformId: string | null;
 }
 
 const decisionConfig: Record<MintDecision, { 
@@ -45,7 +46,7 @@ const decisionConfig: Record<MintDecision, {
   },
 };
 
-export function MintPreview({ result, lightScore, unityScore, actionType }: MintPreviewProps) {
+export function MintPreview({ result, lightScore, unityScore, actionType, platformId }: MintPreviewProps) {
   const { address, isConnected } = useWallet();
   const [validation, setValidation] = useState<MintValidation | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -210,9 +211,12 @@ export function MintPreview({ result, lightScore, unityScore, actionType }: Mint
         <div className="pt-2">
           <MintButton 
             result={result} 
-            actionType={actionType} 
+            actionType={actionType}
+            platformId={platformId}
             disabled={!validation?.canMint}
             recipient={recipient}
+            lightScore={lightScore}
+            unityScore={unityScore}
             onMintSuccess={handleMintSuccess}
           />
         </div>

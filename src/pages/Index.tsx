@@ -6,6 +6,7 @@ import { MantrasSection } from "@/components/MantrasSection";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { MintFunButton } from "@/components/MintFunButton";
+import { UserMenu } from "@/components/auth/UserMenu";
 import { ArrowRight } from "lucide-react";
 
 const Index = () => {
@@ -31,7 +32,11 @@ const Index = () => {
             </Link>
           </div>
           
-          <MintFunButton size="sm" />
+          <div className="flex items-center gap-3">
+            <UserMenu />
+            <MintFunButton size="sm" />
+          </div>
+          
         </div>
       </nav>
       
