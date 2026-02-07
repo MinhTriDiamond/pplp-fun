@@ -153,3 +153,32 @@ export async function checkContractExists(provider: BrowserProvider, address: st
 export function isValidAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
 }
+
+// Get allocation (locked + activated) for a user address
+export async function getAllocation(provider: BrowserProvider, address: string): Promise<{
+  locked: bigint;
+  activated: bigint;
+}> {
+  const contract = getFunMoneyContract(provider);
+  const result = await contract.alloc(address);
+  return { 
+    locked: result[0] ?? result.locked ?? 0n, 
+    activated: result[1] ?? result.activated ?? 0n 
+  };
+}
+
+// Activate tokens: LOCKED → ACTIVATED
+export async function activateTokens(provider: BrowserProvider, amount: bigint): Promise<string> {
+  const contract = await getFunMoneyContractWithSigner(provider);
+  const tx = await contract.activate(amount);
+  const receipt = await tx.wait();
+  return receipt.hash;
+}
+
+// Claim tokens: ACTIVATED → FLOWING (ERC20 balance)
+export async function claimTokens(provider: BrowserProvider, amount: bigint): Promise<string> {
+  const contract = await getFunMoneyContractWithSigner(provider);
+  const tx = await contract.claim(amount);
+  const receipt = await tx.wait();
+  return receipt.hash;
+}

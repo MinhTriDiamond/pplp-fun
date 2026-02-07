@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, Clock, Coins } from 'lucide-react';
@@ -6,6 +6,9 @@ import { formatFunAmount } from '@/lib/pplp-engine';
 import { MintButton } from '@/components/simulator/MintButton';
 import { MintValidationPanel } from '@/components/simulator/MintValidationPanel';
 import { ContractSettings } from '@/components/simulator/ContractSettings';
+import { RecipientInput } from '@/components/simulator/RecipientInput';
+import { TokenLifecyclePanel } from '@/components/simulator/TokenLifecyclePanel';
+import { useWallet } from '@/hooks/useWallet';
 import type { ScoringResult, MintDecision } from '@/types/pplp.types';
 import type { MintValidation } from '@/lib/mint-validator';
 
@@ -43,11 +46,25 @@ const decisionConfig: Record<MintDecision, {
 };
 
 export function MintPreview({ result, lightScore, unityScore, actionType }: MintPreviewProps) {
+  const { address, isConnected } = useWallet();
   const [validation, setValidation] = useState<MintValidation | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [recipient, setRecipient] = useState<string>('');
+  
+  // Initialize recipient with connected wallet address
+  useEffect(() => {
+    if (address && !recipient) {
+      setRecipient(address);
+    }
+  }, [address, recipient]);
   
   const handleAddressChange = () => {
     // Trigger re-validation when contract address changes
+    setRefreshTrigger(prev => prev + 1);
+  };
+  
+  const handleMintSuccess = () => {
+    // Refresh lifecycle panel after successful mint
     setRefreshTrigger(prev => prev + 1);
   };
   
@@ -80,6 +97,11 @@ export function MintPreview({ result, lightScore, unityScore, actionType }: Mint
           onValidationComplete={setValidation}
           refreshTrigger={refreshTrigger}
         />
+        
+        {/* Token Lifecycle Panel - Show even without result */}
+        {isConnected && (
+          <TokenLifecyclePanel refreshTrigger={refreshTrigger} />
+        )}
       </div>
     );
   }
@@ -168,6 +190,15 @@ export function MintPreview({ result, lightScore, unityScore, actionType }: Mint
         {/* Contract Settings */}
         <ContractSettings onAddressChange={handleAddressChange} />
         
+        {/* Recipient Input - NEW */}
+        {isConnected && (
+          <RecipientInput
+            recipient={recipient}
+            onRecipientChange={setRecipient}
+            connectedAddress={address}
+          />
+        )}
+        
         {/* Validation Panel */}
         <MintValidationPanel 
           actionType={actionType} 
@@ -181,8 +212,15 @@ export function MintPreview({ result, lightScore, unityScore, actionType }: Mint
             result={result} 
             actionType={actionType} 
             disabled={!validation?.canMint}
+            recipient={recipient}
+            onMintSuccess={handleMintSuccess}
           />
         </div>
+        
+        {/* Token Lifecycle Panel - NEW */}
+        {isConnected && (
+          <TokenLifecyclePanel refreshTrigger={refreshTrigger} />
+        )}
       </CardContent>
     </Card>
   );
