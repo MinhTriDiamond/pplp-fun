@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Simulator from "./pages/Simulator";
 import ContractDocs from "./pages/ContractDocs";
 import Documentation from "./pages/Documentation";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/simulator" element={<Simulator />} />
           <Route path="/contract-docs" element={<ContractDocs />} />
           <Route path="/documentation" element={<Documentation />} />
+          <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

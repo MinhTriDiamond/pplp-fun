@@ -17,6 +17,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
+import { useAuth } from '@/hooks/useAuth';
+import { useMintHistory } from '@/hooks/useMintHistory';
 import { 
   getFunMoneyContractWithSigner, 
   getNonce, 
@@ -32,6 +34,7 @@ import { signPPLP, getEip712Domain, verifyPPLPSignatureWithDebug, type PPLPData 
 import type { ScoringResult } from '@/types/pplp.types';
 import { useToast } from '@/hooks/use-toast';
 import { DebugPanel } from './DebugPanel';
+import { AuthModal } from '@/components/auth/AuthModal';
 import { 
   createInitialDebugBundle, 
   decodeRevertError,
@@ -41,14 +44,26 @@ import {
 interface MintButtonProps {
   result: ScoringResult | null;
   actionType: string | null;
+  platformId: string | null;
   disabled?: boolean;
   recipient?: string;
+  lightScore?: number;
+  unityScore?: number;
   onMintSuccess?: () => void;
 }
 
 type MintStatus = 'idle' | 'signing' | 'minting' | 'success' | 'error';
 
-export function MintButton({ result, actionType, disabled, recipient, onMintSuccess }: MintButtonProps) {
+export function MintButton({ 
+  result, 
+  actionType, 
+  platformId,
+  disabled, 
+  recipient, 
+  lightScore,
+  unityScore,
+  onMintSuccess 
+}: MintButtonProps) {
   const { toast } = useToast();
   const { 
     isConnected, 
@@ -60,11 +75,14 @@ export function MintButton({ result, actionType, disabled, recipient, onMintSucc
     switchToBscTestnet,
     hasMetaMask
   } = useWallet();
+  const { isAuthenticated } = useAuth();
+  const { saveMint } = useMintHistory();
 
   const [status, setStatus] = useState<MintStatus>('idle');
   const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [debugBundle, setDebugBundle] = useState<MintDebugBundle | null>(null);
 
   // Use recipient if provided, otherwise use connected wallet
@@ -72,6 +90,12 @@ export function MintButton({ result, actionType, disabled, recipient, onMintSucc
   const canMint = result?.decision === 'AUTHORIZE' && actionType && isConnected && isCorrectChain && mintRecipient;
 
   const handleMint = async () => {
+    // Check authentication first
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (!canMint || !provider || !signer || !address || !actionType || !mintRecipient) return;
 
     setShowDialog(true);
@@ -230,6 +254,28 @@ export function MintButton({ result, actionType, disabled, recipient, onMintSucc
       
       setTxHash(receipt.hash);
       setStatus('success');
+
+      // Save mint history to database
+      if (isAuthenticated && platformId) {
+        await saveMint({
+          txHash: receipt.hash,
+          chainId: BSC_TESTNET_CONFIG.chainId,
+          contractAddress: contractAddress,
+          recipientAddress: mintRecipient,
+          actionType: actionType,
+          platformId: platformId,
+          amountAtomic: amount.toString(),
+          amountFormatted: `${(Number(amount) / 1e18).toFixed(4)} FUN`,
+          lightScore: lightScore,
+          unityScore: unityScore,
+          integrityK: result.multipliers.K,
+          evidenceHash: evidenceHash,
+          multiplierQ: result.multipliers.Q,
+          multiplierI: result.multipliers.I,
+          multiplierK: result.multipliers.K,
+          multiplierUx: result.multipliers.Ux,
+        });
+      }
 
       toast({
         title: '🎉 Mint thành công!',
@@ -420,6 +466,17 @@ export function MintButton({ result, actionType, disabled, recipient, onMintSucc
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Auth Modal for login requirement */}
+      <AuthModal 
+        open={showAuthModal}
+        onOpenChange={setShowAuthModal}
+        onSuccess={() => {
+          setShowAuthModal(false);
+          // Retry mint after successful login
+          handleMint();
+        }}
+      />
     </>
   );
 }

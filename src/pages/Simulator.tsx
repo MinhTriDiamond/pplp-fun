@@ -10,6 +10,7 @@ import { UserProfileSim } from '@/components/simulator/UserProfileSim';
 import { ScoringResults } from '@/components/simulator/ScoringResults';
 import { MintPreview } from '@/components/simulator/MintPreview';
 import { WalletConnect } from '@/components/wallet/WalletConnect';
+import { UserMenu } from '@/components/auth/UserMenu';
 import { RadarChart } from '@/components/simulator/RadarChart';
 import { 
   scoreAction, 
@@ -134,6 +135,7 @@ export default function Simulator() {
               <p className="text-sm text-muted-foreground hidden md:block">
                 Test & Mint FUN Money
               </p>
+              <UserMenu />
               <WalletConnect />
             </div>
           </div>
@@ -239,6 +241,7 @@ export default function Simulator() {
               lightScore={lightScore}
               unityScore={unityScore}
               actionType={actionType}
+              platformId={platformId}
             />
 
             {/* Scoring Breakdown */}
