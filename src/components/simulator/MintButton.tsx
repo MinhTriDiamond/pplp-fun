@@ -42,11 +42,13 @@ interface MintButtonProps {
   result: ScoringResult | null;
   actionType: string | null;
   disabled?: boolean;
+  recipient?: string;
+  onMintSuccess?: () => void;
 }
 
 type MintStatus = 'idle' | 'signing' | 'minting' | 'success' | 'error';
 
-export function MintButton({ result, actionType, disabled }: MintButtonProps) {
+export function MintButton({ result, actionType, disabled, recipient, onMintSuccess }: MintButtonProps) {
   const { toast } = useToast();
   const { 
     isConnected, 
@@ -65,10 +67,12 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [debugBundle, setDebugBundle] = useState<MintDebugBundle | null>(null);
 
-  const canMint = result?.decision === 'AUTHORIZE' && actionType && isConnected && isCorrectChain;
+  // Use recipient if provided, otherwise use connected wallet
+  const mintRecipient = recipient && recipient.length === 42 ? recipient : address;
+  const canMint = result?.decision === 'AUTHORIZE' && actionType && isConnected && isCorrectChain && mintRecipient;
 
   const handleMint = async () => {
-    if (!canMint || !provider || !signer || !address || !actionType) return;
+    if (!canMint || !provider || !signer || !address || !actionType || !mintRecipient) return;
 
     setShowDialog(true);
     setStatus('signing');
@@ -79,6 +83,9 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
     bundle.timestamp = new Date().toISOString();
     bundle.wallet.address = address;
     bundle.action.type = actionType;
+    
+    // Note: mintRecipient is the user who receives the tokens
+    // address is the connected wallet (Attester) who signs
 
     try {
       // Get network info
@@ -115,8 +122,9 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
         bundle.action.isRegistered = null;
       }
 
-      // Get nonce from contract
-      const nonce = await getNonce(provider, address);
+      // Get nonce from contract FOR THE RECIPIENT (not signer!)
+      // Contract checks nonce of the user who receives tokens
+      const nonce = await getNonce(provider, mintRecipient);
       
       // Amount in atomic units (18 decimals)
       const amount = result.calculatedAmountAtomic;
@@ -133,8 +141,9 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
       });
 
       // Update PPLP params in bundle (v1.2.1 structure)
+      // User = recipient (who receives tokens), not signer
       bundle.pplp = {
-        user: address,
+        user: mintRecipient,
         amount: amount.toString(),
         amountFormatted: (Number(amount) / 1e18).toFixed(4) + " FUN",
         evidenceHash: evidenceHash,
@@ -146,8 +155,9 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
       bundle.domain = domain;
 
       // Prepare PPLP data for signing (v1.2.1 structure)
+      // CRITICAL: user = recipient address (who receives tokens)
       const pplpData: PPLPData = {
-        user: address,
+        user: mintRecipient,
         actionHash,
         amount: BigInt(amount),
         evidenceHash,
@@ -183,12 +193,13 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
       // Preflight dry-run using estimateGas
       try {
         // lockWithPPLP(address user, string action, uint256 amount, bytes32 evidenceHash, bytes[] sigs)
+        // user = recipient (who receives tokens)
         await signerContract.lockWithPPLP.estimateGas(
-          address,      // user
-          actionType,   // action STRING (not hash!)
-          amount,       // amount
-          evidenceHash, // evidenceHash
-          [signature]   // sigs array
+          mintRecipient, // user = RECIPIENT
+          actionType,    // action STRING (not hash!)
+          amount,        // amount
+          evidenceHash,  // evidenceHash
+          [signature]    // sigs array
         );
         bundle.preflight.success = true;
       } catch (preflightErr: any) {
@@ -205,12 +216,13 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
       setDebugBundle({ ...bundle });
 
       // Call lockWithPPLP with CORRECT parameters for v1.2.1
+      // user = recipient address (who receives the tokens)
       const tx = await signerContract.lockWithPPLP(
-        address,      // user
-        actionType,   // action STRING (contract hashes internally)
-        amount,       // amount
-        evidenceHash, // evidenceHash
-        [signature]   // sigs array
+        mintRecipient, // user = RECIPIENT  
+        actionType,    // action STRING (contract hashes internally)
+        amount,        // amount
+        evidenceHash,  // evidenceHash
+        [signature]    // sigs array
       );
 
       // Wait for transaction confirmation
@@ -221,8 +233,11 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
 
       toast({
         title: '🎉 Mint thành công!',
-        description: `Đã mint ${(Number(amount) / 1e18).toFixed(2)} FUN Money`,
+        description: `Đã mint ${(Number(amount) / 1e18).toFixed(2)} FUN về ${mintRecipient.slice(0, 10)}...`,
       });
+      
+      // Trigger refresh callback
+      onMintSuccess?.();
 
     } catch (err: any) {
       console.error('Mint error:', err);
