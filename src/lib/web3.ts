@@ -24,7 +24,15 @@ export function setFunMoneyAddress(address: string): void {
 // Legacy export for compatibility
 export const FUN_MONEY_ADDRESS = getFunMoneyAddress();
 
-// ABI for FUN Money Production v1.2.1 contract (matching deployed contract on BSC Testnet)
+/**
+ * ABI for FUN Money Production v1.2.1 contract
+ * 
+ * CRITICAL: The lockWithPPLP function signature:
+ * lockWithPPLP(address user, string action, uint256 amount, bytes32 evidenceHash, bytes[] sigs)
+ * 
+ * - `action` is a STRING (not bytes32!) - contract hashes it internally
+ * - `nonce` is NOT passed - contract reads from nonces[user] internally
+ */
 export const FUN_MONEY_ABI = [
   // Read functions - Basic ERC20
   'function name() view returns (string)',
@@ -35,26 +43,25 @@ export const FUN_MONEY_ABI = [
   'function nonces(address user) view returns (uint256)',
   
   // Read functions - PPLP specific (v1.2.1 naming convention)
-  'function pauseTransitions() view returns (bool)',  // NOT paused()
+  'function pauseTransitions() view returns (bool)',
   'function isAttester(address) view returns (bool)',
-  'function attesterThreshold() view returns (uint256)',  // NOT threshold()
-  'function epochMintCap() view returns (uint256)',  // NOT epochCap()
-  'function epochs(uint256) view returns (uint256)',  // epoch data
+  'function attesterThreshold() view returns (uint256)',
+  'function epochMintCap() view returns (uint256)',
+  'function epochs(bytes32) view returns (uint64 start, uint256 minted)',
   'function epochDuration() view returns (uint256)',
-  'function actions(bytes32) view returns (bool exists, uint256 version, bool deprecated)',
+  'function actions(bytes32) view returns (bool allowed, uint32 version, bool deprecated)',
   'function guardianGov() view returns (address)',
   'function communityPool() view returns (address)',
   'function alloc(address) view returns (uint256 locked, uint256 activated)',
-  'function totalActivated() view returns (uint256)',
   
-  // Write functions
-  'function lockWithPPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline, bytes[] signatures) external',
+  // Write functions - CORRECT signature matching contract v1.2.1
+  'function lockWithPPLP(address user, string action, uint256 amount, bytes32 evidenceHash, bytes[] sigs) external',
   'function activate(uint256 amount) external',
   'function claim(uint256 amount) external',
   
   // Events
   'event Transfer(address indexed from, address indexed to, uint256 value)',
-  'event Locked(address indexed recipient, uint256 amount, bytes32 actionHash)',
+  'event PureLoveAccepted(address indexed user, bytes32 indexed action, uint256 amount, uint32 version)',
   'event Activated(address indexed user, uint256 amount)',
   'event Claimed(address indexed user, uint256 amount)'
 ];
@@ -70,14 +77,14 @@ export const BSC_TESTNET_CONFIG = {
 
 // Create contract instance - always fetch fresh address
 export function getFunMoneyContract(provider: BrowserProvider) {
-  const address = getFunMoneyAddress(); // Dynamic fetch
+  const address = getFunMoneyAddress();
   return new Contract(address, FUN_MONEY_ABI, provider);
 }
 
 // Get contract with signer for write operations
 export async function getFunMoneyContractWithSigner(provider: BrowserProvider) {
   const signer = await provider.getSigner();
-  const address = getFunMoneyAddress(); // Dynamic fetch
+  const address = getFunMoneyAddress();
   return new Contract(address, FUN_MONEY_ABI, signer);
 }
 
@@ -93,9 +100,23 @@ export async function getFunBalance(provider: BrowserProvider, address: string):
   return await contract.balanceOf(address);
 }
 
-// Helper to create action hash
+// Helper to create action hash (same as contract does internally)
 export function createActionHash(actionType: string): string {
   return keccak256(toUtf8Bytes(actionType));
+}
+
+/**
+ * Create evidence hash from action metadata
+ * This proves the action details that were attested
+ */
+export function createEvidenceHash(data: {
+  actionType: string;
+  timestamp: number;
+  pillars?: Record<string, number>;
+  metadata?: Record<string, unknown>;
+}): string {
+  const json = JSON.stringify(data);
+  return keccak256(toUtf8Bytes(json));
 }
 
 // Format FUN amount for display (18 decimals)
@@ -108,7 +129,6 @@ export function formatFunDisplay(amountAtomic: bigint): string {
     return `${whole.toLocaleString()} FUN`;
   }
   
-  // Show 2 decimal places
   const fractionStr = fraction.toString().padStart(Number(decimals), '0').slice(0, 2);
   return `${whole.toLocaleString()}.${fractionStr} FUN`;
 }

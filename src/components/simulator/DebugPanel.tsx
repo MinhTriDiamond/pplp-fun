@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { MintDebugBundle } from "@/lib/debug-bundle";
-import { formatDebugBundle } from "@/lib/debug-bundle";
+import { formatDebugBundle, formatEvidenceHash } from "@/lib/debug-bundle";
 
 interface DebugPanelProps {
   debugBundle: MintDebugBundle | null;
@@ -129,13 +129,13 @@ export function DebugPanel({ debugBundle, className = "" }: DebugPanelProps) {
           />
         </DebugSection>
 
-        {/* PPLP Parameters */}
-        <DebugSection title="PPLP Parameters">
-          <DebugRow label="Recipient" value={debugBundle.pplp.recipient} mono />
+        {/* PPLP Parameters (v1.2.1 - PureLoveProof) */}
+        <DebugSection title="PureLoveProof Parameters">
+          <DebugRow label="User" value={debugBundle.pplp.user} mono />
           <DebugRow label="Amount (atomic)" value={debugBundle.pplp.amount} mono />
           <DebugRow label="Amount (FUN)" value={debugBundle.pplp.amountFormatted} />
+          <DebugRow label="Evidence Hash" value={formatEvidenceHash(debugBundle.pplp.evidenceHash)} mono />
           <DebugRow label="Nonce" value={debugBundle.pplp.nonce} mono />
-          <DebugRow label="Deadline" value={debugBundle.pplp.deadlineFormatted} />
         </DebugSection>
 
         {/* EIP-712 Domain */}

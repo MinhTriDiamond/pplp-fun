@@ -2,6 +2,7 @@ import type { TypedDataDomain } from "ethers";
 
 /**
  * Debug Bundle - Collects all mint parameters for troubleshooting
+ * Updated for Smart Contract v1.2.1 PureLoveProof structure
  */
 export interface MintDebugBundle {
   // Timestamp
@@ -28,19 +29,19 @@ export interface MintDebugBundle {
   
   // Action info
   action: {
-    type: string;
-    hash: string;
+    type: string;         // The action string (e.g., "DONATE")
+    hash: string;         // keccak256(actionType) - bytes32
     isRegistered: boolean | null;
   };
   
-  // PPLP parameters
+  // PPLP parameters (matching contract v1.2.1)
   pplp: {
-    recipient: string;
+    user: string;           // Changed from "recipient"
     amount: string;
     amountFormatted: string;
+    evidenceHash: string;   // NEW - replaces deadline
     nonce: string;
-    deadline: string;
-    deadlineFormatted: string;
+    // Removed: deadline, deadlineFormatted
   };
   
   // EIP-712 domain
@@ -95,12 +96,11 @@ export function createInitialDebugBundle(): MintDebugBundle {
       isRegistered: null,
     },
     pplp: {
-      recipient: "",
+      user: "",
       amount: "0",
-      amountFormatted: "0",
+      amountFormatted: "0 FUN",
+      evidenceHash: "",
       nonce: "0",
-      deadline: "0",
-      deadlineFormatted: "",
     },
     domain: {
       name: "",
@@ -131,30 +131,26 @@ export function formatDebugBundle(bundle: MintDebugBundle): string {
 }
 
 /**
- * Decode common revert errors
+ * Decode common revert errors from FUN Money contract v1.2.1
  */
 export function decodeRevertError(data: string | null): string {
   if (!data || data === "0x") {
     return "No revert data (silent revert or require(false))";
   }
   
-  // Try to decode common error selectors
   const selector = data.slice(0, 10).toLowerCase();
   
-  const knownErrors: Record<string, string> = {
-    "0x08c379a0": "Error(string)", // Standard revert with message
-    "0x4e487b71": "Panic(uint256)", // Panic error
+  // Standard Solidity errors
+  const standardErrors: Record<string, string> = {
+    "0x08c379a0": "Error(string)",
+    "0x4e487b71": "Panic(uint256)",
     "0x": "Empty revert data",
   };
   
-  if (knownErrors[selector]) {
-    // For Error(string), try to decode the message
+  if (standardErrors[selector]) {
     if (selector === "0x08c379a0" && data.length > 10) {
       try {
-        // Skip selector (4 bytes) + offset (32 bytes) + length (32 bytes)
-        // Then decode the string
         const hexString = data.slice(10);
-        const offset = parseInt(hexString.slice(0, 64), 16) * 2;
         const length = parseInt(hexString.slice(64, 128), 16);
         const messageHex = hexString.slice(128, 128 + length * 2);
         const message = Buffer.from(messageHex, 'hex').toString('utf8');
@@ -163,38 +159,36 @@ export function decodeRevertError(data: string | null): string {
         return "Error(string) - Could not decode message";
       }
     }
-    return knownErrors[selector];
+    return standardErrors[selector];
   }
   
-  // Check for custom error selectors from FUN Money contract
-  const customErrors: Record<string, string> = {
-    "0xa1c9d7d3": "InvalidSignature()",
-    "0x7dc4a293": "DeadlineExpired()",
-    "0x3ee5aeb5": "NonceAlreadyUsed()",
-    "0x82b42900": "ActionNotRegistered()",
-    "0x8baa579f": "EpochCapExceeded()",
+  // Contract v1.2.1 specific require() messages (short strings)
+  const requireMessages: Record<string, string> = {
+    // From source code analysis
+    "NOT_GOV": "Caller is not governance",
+    "PAUSED": "Transitions are paused",
+    "SIG_LIMIT": "Too many signatures (max 5)",
+    "ACTION_INVALID": "Action not allowed or deprecated",
+    "EPOCH_CAP": "Epoch mint cap exceeded",
+    "SIGS_LOW": "Not enough valid attester signatures",
+    "LOCK_LOW": "Insufficient locked amount",
+    "ACT_LOW": "Insufficient activated amount",
   };
   
-  if (customErrors[selector]) {
-    return customErrors[selector];
+  // Try to match the error string if it's a simple require
+  for (const [key, desc] of Object.entries(requireMessages)) {
+    if (data.toLowerCase().includes(Buffer.from(key).toString('hex').toLowerCase())) {
+      return `require() failed: ${key} - ${desc}`;
+    }
   }
   
   return `Unknown error selector: ${selector}`;
 }
 
 /**
- * Format deadline as human readable
+ * Format evidence hash for display (truncated)
  */
-export function formatDeadline(deadline: bigint | string): string {
-  const ts = typeof deadline === "bigint" ? Number(deadline) : Number(deadline);
-  const date = new Date(ts * 1000);
-  const now = Date.now();
-  const diffMs = ts * 1000 - now;
-  
-  if (diffMs < 0) {
-    return `EXPIRED (${date.toLocaleString()})`;
-  }
-  
-  const diffMins = Math.floor(diffMs / 60000);
-  return `${date.toLocaleString()} (in ${diffMins} minutes)`;
+export function formatEvidenceHash(hash: string): string {
+  if (!hash || hash.length < 20) return hash;
+  return `${hash.slice(0, 10)}...${hash.slice(-8)}`;
 }

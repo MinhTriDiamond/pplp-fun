@@ -2,24 +2,31 @@ import type { TypedDataDomain, TypedDataField } from "ethers";
 import { verifyTypedData } from "ethers";
 import { getFunMoneyAddress, BSC_TESTNET_CONFIG } from "./web3";
 
-// PPLP type structure
+/**
+ * EIP-712 Type Structure for PureLoveProof (PPLP)
+ * 
+ * MUST match exactly with the contract's PPLP_TYPEHASH:
+ * keccak256("PureLoveProof(address user,bytes32 actionHash,uint256 amount,bytes32 evidenceHash,uint256 nonce)")
+ */
 export const PPLP_TYPES: Record<string, TypedDataField[]> = {
-  PPLP: [
-    { name: "recipient", type: "address" },
-    { name: "amount", type: "uint256" },
+  PureLoveProof: [
+    { name: "user", type: "address" },
     { name: "actionHash", type: "bytes32" },
+    { name: "amount", type: "uint256" },
+    { name: "evidenceHash", type: "bytes32" },
     { name: "nonce", type: "uint256" },
-    { name: "deadline", type: "uint256" },
   ],
 };
 
-// PPLP data structure
+/**
+ * PPLP data structure matching contract requirements
+ */
 export interface PPLPData {
-  recipient: string;
-  amount: bigint;
-  actionHash: string;
-  nonce: bigint;
-  deadline: bigint;
+  user: string;           // The user receiving the mint
+  actionHash: string;     // keccak256(actionType) - bytes32
+  amount: bigint;         // Amount in atomic units (18 decimals)
+  evidenceHash: string;   // Evidence hash (proof of action) - bytes32
+  nonce: bigint;          // User's current nonce from contract
 }
 
 /**
@@ -29,7 +36,7 @@ export interface PPLPData {
  *
  * IMPORTANT: The `version` MUST match the deployed contract's EIP-712 domain.
  * Deployed contract: FUNMoneyProductionV1_2_1 on BSC Testnet
- * Contract source shows version "1.2.1" in EIP-712 domain
+ * Contract constructor: EIP712("FUN Money", "1.2.1")
  */
 export function getEip712Domain(): TypedDataDomain {
   return {
@@ -40,33 +47,30 @@ export function getEip712Domain(): TypedDataDomain {
   };
 }
 
-// Create typed data for signing
+/**
+ * Create typed data for EIP-712 signing
+ * Field order and names MUST match PPLP_TYPEHASH in contract exactly
+ */
 export function createPPLPTypedData(data: PPLPData) {
   return {
     domain: getEip712Domain(),
     types: PPLP_TYPES,
-    primaryType: "PPLP" as const,
+    primaryType: "PureLoveProof" as const,
     message: {
-      recipient: data.recipient,
-      amount: data.amount.toString(),
+      user: data.user,
       actionHash: data.actionHash,
+      amount: data.amount.toString(),
+      evidenceHash: data.evidenceHash,
       nonce: data.nonce.toString(),
-      deadline: data.deadline.toString(),
     },
   };
 }
 
-// Calculate deadline (N hours from now)
-export function getDeadline(hoursFromNow: number = 1): bigint {
-  const now = Math.floor(Date.now() / 1000);
-  return BigInt(now + hoursFromNow * 3600);
-}
-
-// Sign PPLP data using MetaMask
+/**
+ * Sign PPLP data using MetaMask EIP-712
+ */
 export async function signPPLP(signer: any, data: PPLPData): Promise<string> {
   const typedData = createPPLPTypedData(data);
-
-  // Use signTypedData from ethers Signer
   return await signer.signTypedData(typedData.domain, typedData.types, typedData.message);
 }
 
@@ -77,7 +81,6 @@ export async function signPPLP(signer: any, data: PPLPData): Promise<string> {
 export function verifyPPLPSignature(data: PPLPData, signature: string): string {
   const typedData = createPPLPTypedData(data);
   
-  // Recover the signer address from the signature
   return verifyTypedData(
     typedData.domain,
     typedData.types,

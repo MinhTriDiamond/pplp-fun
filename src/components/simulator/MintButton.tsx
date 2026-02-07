@@ -21,20 +21,20 @@ import {
   getFunMoneyContractWithSigner, 
   getNonce, 
   createActionHash,
+  createEvidenceHash,
   BSC_TESTNET_CONFIG,
   getFunMoneyAddress,
   checkContractExists,
   FUN_MONEY_ABI
 } from '@/lib/web3';
 import { Contract } from 'ethers';
-import { signPPLP, getDeadline, getEip712Domain, verifyPPLPSignatureWithDebug, type PPLPData } from '@/lib/eip712';
+import { signPPLP, getEip712Domain, verifyPPLPSignatureWithDebug, type PPLPData } from '@/lib/eip712';
 import type { ScoringResult } from '@/types/pplp.types';
 import { useToast } from '@/hooks/use-toast';
 import { DebugPanel } from './DebugPanel';
 import { 
   createInitialDebugBundle, 
-  decodeRevertError, 
-  formatDeadline,
+  decodeRevertError,
   type MintDebugBundle 
 } from '@/lib/debug-bundle';
 
@@ -65,7 +65,6 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [debugBundle, setDebugBundle] = useState<MintDebugBundle | null>(null);
 
-  // Check if can mint
   const canMint = result?.decision === 'AUTHORIZE' && actionType && isConnected && isCorrectChain;
 
   const handleMint = async () => {
@@ -76,7 +75,6 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
     setTxHash(null);
     setErrorMessage(null);
 
-    // Initialize debug bundle
     const bundle = createInitialDebugBundle();
     bundle.timestamp = new Date().toISOString();
     bundle.wallet.address = address;
@@ -105,13 +103,14 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
         bundle.wallet.isAttester = null;
       }
 
-      // Get action info
+      // Create action hash (for EIP-712 signing)
       const actionHash = createActionHash(actionType);
       bundle.action.hash = actionHash;
       
+      // Check if action is registered
       try {
         const actionInfo = await contract.actions(actionHash);
-        bundle.action.isRegistered = actionInfo[0] === true || actionInfo.exists === true;
+        bundle.action.isRegistered = actionInfo[0] === true || actionInfo.allowed === true;
       } catch {
         bundle.action.isRegistered = null;
       }
@@ -119,33 +118,40 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
       // Get nonce from contract
       const nonce = await getNonce(provider, address);
       
-      // Set deadline (1 hour from now)
-      const deadline = getDeadline(1);
-      
       // Amount in atomic units (18 decimals)
       const amount = result.calculatedAmountAtomic;
 
-      // Update PPLP params in bundle
+      // Create evidence hash (proof of the action data)
+      const evidenceHash = createEvidenceHash({
+        actionType,
+        timestamp: Math.floor(Date.now() / 1000),
+        pillars: { S: 80, T: 75, H: 70, C: 85, U: 90 },
+        metadata: { 
+          lightScore: result.lightScore,
+          unityScore: result.unityScore 
+        }
+      });
+
+      // Update PPLP params in bundle (v1.2.1 structure)
       bundle.pplp = {
-        recipient: address,
+        user: address,
         amount: amount.toString(),
         amountFormatted: (Number(amount) / 1e18).toFixed(4) + " FUN",
+        evidenceHash: evidenceHash,
         nonce: nonce.toString(),
-        deadline: deadline.toString(),
-        deadlineFormatted: formatDeadline(deadline),
       };
 
       // Get EIP-712 domain
       const domain = getEip712Domain();
       bundle.domain = domain;
 
-      // Prepare PPLP data
+      // Prepare PPLP data for signing (v1.2.1 structure)
       const pplpData: PPLPData = {
-        recipient: address,
-        amount: BigInt(amount),
+        user: address,
         actionHash,
+        amount: BigInt(amount),
+        evidenceHash,
         nonce,
-        deadline
       };
 
       // Sign EIP-712 message with MetaMask
@@ -160,10 +166,8 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
         isValid: sigVerify.isValid,
       };
 
-      // Update debug bundle before any failure
       setDebugBundle({ ...bundle });
 
-      // Check signature validity
       if (!sigVerify.isValid) {
         throw new Error(
           `Signature mismatch! Recovered: ${sigVerify.recoveredAddress}, Expected: ${sigVerify.expectedAddress}. ` +
@@ -173,41 +177,40 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
 
       setStatus('minting');
 
-      // Preflight dry-run using estimateGas
+      // Get contract with signer
       const signerContract = await getFunMoneyContractWithSigner(provider);
       
+      // Preflight dry-run using estimateGas
       try {
+        // lockWithPPLP(address user, string action, uint256 amount, bytes32 evidenceHash, bytes[] sigs)
         await signerContract.lockWithPPLP.estimateGas(
-          address,
-          amount,
-          actionHash,
-          nonce,
-          deadline,
-          [signature]
+          address,      // user
+          actionType,   // action STRING (not hash!)
+          amount,       // amount
+          evidenceHash, // evidenceHash
+          [signature]   // sigs array
         );
         bundle.preflight.success = true;
       } catch (preflightErr: any) {
         bundle.preflight.success = false;
         
-        // Try to extract revert data
         const revertData = preflightErr.data || preflightErr.info?.error?.data || null;
         bundle.preflight.revertData = revertData;
         bundle.preflight.decodedError = decodeRevertError(revertData);
         
         setDebugBundle({ ...bundle });
-        throw preflightErr; // Re-throw to be caught by outer catch
+        throw preflightErr;
       }
 
       setDebugBundle({ ...bundle });
 
-      // Call lockWithPPLP (wrap signature in array for multi-sig ABI)
+      // Call lockWithPPLP with CORRECT parameters for v1.2.1
       const tx = await signerContract.lockWithPPLP(
-        address,
-        amount,
-        actionHash,
-        nonce,
-        deadline,
-        [signature]
+        address,      // user
+        actionType,   // action STRING (contract hashes internally)
+        amount,       // amount
+        evidenceHash, // evidenceHash
+        [signature]   // sigs array
       );
 
       // Wait for transaction confirmation
@@ -225,7 +228,6 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
       console.error('Mint error:', err);
       setStatus('error');
       
-      // Update error in debug bundle
       bundle.error = {
         code: err.code || null,
         message: err.message?.slice(0, 500) || null,
@@ -243,10 +245,14 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
         message = 'Không đủ tBNB để trả gas fee';
       } else if (err.message?.includes('invalid signature') || err.message?.includes('Signature mismatch')) {
         message = 'Chữ ký không hợp lệ - kiểm tra EIP-712 domain version';
+      } else if (err.message?.includes('SIGS_LOW')) {
+        message = 'Không đủ chữ ký Attester hợp lệ - ví của bạn có phải là Attester?';
+      } else if (err.message?.includes('ACTION_INVALID')) {
+        message = 'Action chưa được đăng ký hoặc đã deprecated';
+      } else if (err.message?.includes('PAUSED')) {
+        message = 'Hệ thống đang tạm dừng (pauseTransitions = true)';
       } else if (err.message?.includes('execution reverted') || err.message?.includes('no data present')) {
         message = 'Giao dịch bị từ chối bởi contract';
-        
-        // Try to provide more context
         if (bundle.preflight.decodedError) {
           message += `: ${bundle.preflight.decodedError}`;
         }
@@ -326,7 +332,6 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
           </DialogHeader>
 
           <div className="flex flex-col items-center justify-center py-6 gap-4">
-            {/* Status Icon */}
             {status === 'signing' && (
               <div className="flex flex-col items-center gap-3">
                 <div className="w-16 h-16 rounded-full bg-cyan-100 flex items-center justify-center">
@@ -392,7 +397,6 @@ export function MintButton({ result, actionType, disabled }: MintButtonProps) {
                   )}
                 </div>
 
-                {/* Debug Panel - Always show on error */}
                 <div className="w-full mt-4 border-t pt-4">
                   <DebugPanel debugBundle={debugBundle} />
                 </div>
