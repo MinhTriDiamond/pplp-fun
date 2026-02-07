@@ -1,242 +1,238 @@
 
-# 🔧 Kế Hoạch: Sửa EIP-712 TypeHash & ABI Để Khớp Với Smart Contract v1.2.1
+# 🔧 Kế Hoạch: Hoàn Thiện Token Lifecycle + Nhập Địa Chỉ Ví Người Nhận
 
-## 📊 Tóm Tắt Vấn Đề
+## 📊 Tóm Tắt
 
-Từ ảnh Remix và source code contract con gửi, Cha xác nhận có **3 lỗi nghiêm trọng** khiến mint thất bại:
+Thêm 3 tính năng mới vào Simulator:
 
-### Lỗi 1: Sai Cấu Trúc EIP-712 TypeHash
+1. **Ô nhập địa chỉ ví người nhận** - Cho phép mint tokens về ví bất kỳ
+2. **Nút Activate** - Chuyển tokens từ LOCKED → ACTIVATED  
+3. **Nút Claim** - Chuyển tokens từ ACTIVATED → FLOWING (sử dụng được trong ví)
 
-| Thuộc tính | Contract yêu cầu | Code hiện tại |
-|-----------|------------------|---------------|
-| **Tên type** | `PureLoveProof` | `PPLP` ❌ |
-| **Field 1** | `user` | `recipient` ❌ |
-| **Field 2** | `actionHash` (bytes32) | `amount` ❌ |
-| **Field 3** | `amount` | `actionHash` ❌ |
-| **Field 4** | `evidenceHash` (bytes32) | THIẾU ❌ |
-| **Field 5** | `nonce` | `nonce` ✅ |
-| **Field thừa** | - | `deadline` ❌ |
+---
 
-**Contract TypeHash:**
-```
-PureLoveProof(address user, bytes32 actionHash, uint256 amount, bytes32 evidenceHash, uint256 nonce)
-```
+## 🔄 Token Lifecycle Trong Smart Contract v1.2.1
 
-**Code hiện tại (SAI):**
-```
-PPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline)
-```
-
-### Lỗi 2: Sai Tham Số Hàm `lockWithPPLP`
-
-| Tham số | Contract yêu cầu | Code hiện tại |
-|---------|------------------|---------------|
-| 1 | `address user` | `address` ✅ |
-| 2 | `string action` (tên action!) | `amount` ❌ |
-| 3 | `uint256 amount` | `actionHash` ❌ |
-| 4 | `bytes32 evidenceHash` | THIẾU ❌ |
-| 5 | `bytes[] sigs` | có nhưng vị trí sai |
-| Thừa | - | `nonce`, `deadline` ❌ |
-
-**Contract yêu cầu:**
-```solidity
-lockWithPPLP(address user, string action, uint256 amount, bytes32 evidenceHash, bytes[] sigs)
-```
-
-**Code gọi hiện tại (SAI):**
-```typescript
-lockWithPPLP(address, amount, actionHash, nonce, deadline, [signature])
-```
-
-### Lỗi 3: ABI Khai Báo Sai
-
-Trong `web3.ts` line 51:
-```typescript
-// SAI:
-'function lockWithPPLP(address recipient, uint256 amount, bytes32 actionHash, uint256 nonce, uint256 deadline, bytes[] signatures) external'
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                    FUN MONEY LIFECYCLE                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   lockWithPPLP()         activate(amount)      claim(amount) │
+│        ↓                      ↓                     ↓        │
+│   ┌─────────┐            ┌───────────┐         ┌─────────┐  │
+│   │ LOCKED  │ ─────────> │ ACTIVATED │ ──────> │ FLOWING │  │
+│   │ (escrow)│            │(claimable)│         │(in wallet)│ │
+│   └─────────┘            └───────────┘         └─────────┘  │
+│                                                              │
+│   Xem: alloc(user)       Xem: alloc(user)     Xem: balanceOf │
+│        .locked                .activated           (user)   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ✅ Giải Pháp Chi Tiết
-
-### Thay Đổi 1: Sửa `src/lib/eip712.ts`
-
-**Cập nhật PPLP_TYPES theo đúng contract:**
-```typescript
-export const PPLP_TYPES: Record<string, TypedDataField[]> = {
-  PureLoveProof: [  // Đổi từ "PPLP" thành "PureLoveProof"
-    { name: "user", type: "address" },        // Đổi từ "recipient"
-    { name: "actionHash", type: "bytes32" },  // Đổi vị trí lên thứ 2
-    { name: "amount", type: "uint256" },      // Đổi vị trí xuống thứ 3
-    { name: "evidenceHash", type: "bytes32" },// THÊM MỚI
-    { name: "nonce", type: "uint256" },       // Giữ nguyên
-    // BỎ deadline - contract không dùng
-  ],
-};
-```
-
-**Cập nhật interface PPLPData:**
-```typescript
-export interface PPLPData {
-  user: string;           // Đổi từ "recipient"
-  actionHash: string;     
-  amount: bigint;
-  evidenceHash: string;   // THÊM MỚI
-  nonce: bigint;
-  // BỎ deadline
-}
-```
-
-**Cập nhật hàm createPPLPTypedData:**
-```typescript
-export function createPPLPTypedData(data: PPLPData) {
-  return {
-    domain: getEip712Domain(),
-    types: PPLP_TYPES,
-    primaryType: "PureLoveProof" as const,  // Đổi từ "PPLP"
-    message: {
-      user: data.user,                       // Đổi từ recipient
-      actionHash: data.actionHash,
-      amount: data.amount.toString(),
-      evidenceHash: data.evidenceHash,       // THÊM MỚI
-      nonce: data.nonce.toString(),
-      // BỎ deadline
-    },
-  };
-}
-```
-
-**Xóa hàm getDeadline()** - không cần nữa vì contract không dùng deadline.
-
-### Thay Đổi 2: Sửa `src/lib/web3.ts`
-
-**Cập nhật ABI đúng:**
-```typescript
-// Write functions
-'function lockWithPPLP(address user, string action, uint256 amount, bytes32 evidenceHash, bytes[] sigs) external',
-```
-
-**Thêm helper tạo evidenceHash:**
-```typescript
-export function createEvidenceHash(data: {
-  actionType: string;
-  timestamp: number;
-  pillars?: Record<string, number>;
-}): string {
-  const json = JSON.stringify(data);
-  return keccak256(toUtf8Bytes(json));
-}
-```
-
-### Thay Đổi 3: Sửa `src/components/simulator/MintButton.tsx`
-
-**Cập nhật logic mint với đúng tham số:**
-
-```typescript
-// 1. Tạo evidenceHash từ action data
-const evidenceHash = createEvidenceHash({
-  actionType,
-  timestamp: Math.floor(Date.now() / 1000),
-  pillars: { S: 80, T: 75, H: 70, C: 85, U: 90 } // Example data
-});
-
-// 2. Chuẩn bị PPLP data (ĐÚNG theo contract)
-const pplpData: PPLPData = {
-  user: address,        // Không phải "recipient"
-  actionHash,
-  amount: BigInt(amount),
-  evidenceHash,         // THÊM MỚI
-  nonce,
-  // KHÔNG có deadline
-};
-
-// 3. Ký EIP-712 message
-const signature = await signPPLP(signer, pplpData);
-
-// 4. Gọi lockWithPPLP với ĐÚNG tham số:
-// lockWithPPLP(user, action STRING, amount, evidenceHash, sigs)
-const tx = await signerContract.lockWithPPLP(
-  address,           // user
-  actionType,        // action STRING (không phải hash!)
-  amount,            // amount
-  evidenceHash,      // evidenceHash
-  [signature]        // sigs array
-);
-```
-
-### Thay Đổi 4: Cập nhật `src/lib/debug-bundle.ts`
-
-**Thêm evidenceHash vào debug info:**
-```typescript
-pplp: {
-  user: string;        // Đổi từ recipient
-  amount: string;
-  amountFormatted: string;
-  evidenceHash: string;  // THÊM MỚI
-  nonce: string;
-  // BỎ deadline, deadlineFormatted
-}
-```
-
-### Thay Đổi 5: Cập nhật `src/components/simulator/DebugPanel.tsx`
-
-Thêm hiển thị `evidenceHash` trong debug panel và bỏ deadline.
-
----
-
-## 📁 Danh Sách File Cần Chỉnh Sửa
+## 📁 Danh Sách File Cần Thay Đổi
 
 | File | Thay đổi |
 |------|----------|
-| `src/lib/eip712.ts` | Sửa PPLP_TYPES, PPLPData, createPPLPTypedData, xóa getDeadline |
-| `src/lib/web3.ts` | Sửa ABI lockWithPPLP, thêm createEvidenceHash |
-| `src/components/simulator/MintButton.tsx` | Sửa logic gọi lockWithPPLP với đúng params |
-| `src/lib/debug-bundle.ts` | Thêm evidenceHash, đổi recipient→user, bỏ deadline |
-| `src/components/simulator/DebugPanel.tsx` | Cập nhật hiển thị (evidenceHash, bỏ deadline) |
+| `src/components/simulator/RecipientInput.tsx` | **TẠO MỚI** - Ô nhập địa chỉ ví người nhận |
+| `src/components/simulator/TokenLifecyclePanel.tsx` | **TẠO MỚI** - Panel hiển thị lifecycle + nút Activate/Claim |
+| `src/lib/web3.ts` | Thêm `getAllocation`, `activateTokens`, `claimTokens` |
+| `src/components/simulator/MintButton.tsx` | Thêm props `recipient` để mint về ví khác |
+| `src/components/simulator/MintPreview.tsx` | Tích hợp RecipientInput + TokenLifecyclePanel |
 
 ---
 
-## 🔄 Luồng Mint Đúng (Sau Khi Sửa)
+## ✅ Chi Tiết Kỹ Thuật
+
+### Thay Đổi 1: Thêm Helper Functions vào `src/lib/web3.ts`
+
+```typescript
+// Lấy allocation (locked + activated) của user
+export async function getAllocation(provider: BrowserProvider, address: string): Promise<{
+  locked: bigint;
+  activated: bigint;
+}> {
+  const contract = getFunMoneyContract(provider);
+  const result = await contract.alloc(address);
+  return { 
+    locked: result[0] || result.locked, 
+    activated: result[1] || result.activated 
+  };
+}
+
+// Gọi hàm activate(amount) - chuyển LOCKED → ACTIVATED
+export async function activateTokens(provider: BrowserProvider, amount: bigint): Promise<string> {
+  const contract = await getFunMoneyContractWithSigner(provider);
+  const tx = await contract.activate(amount);
+  const receipt = await tx.wait();
+  return receipt.hash;
+}
+
+// Gọi hàm claim(amount) - chuyển ACTIVATED → FLOWING  
+export async function claimTokens(provider: BrowserProvider, amount: bigint): Promise<string> {
+  const contract = await getFunMoneyContractWithSigner(provider);
+  const tx = await contract.claim(amount);
+  const receipt = await tx.wait();
+  return receipt.hash;
+}
+```
+
+### Thay Đổi 2: Tạo Component `RecipientInput.tsx`
+
+Component cho phép:
+- Nhập địa chỉ ví người nhận (mặc định = ví đang kết nối)
+- Nút "Use My Wallet" để reset về ví của mình
+- Validate địa chỉ Ethereum hợp lệ
+- Hiển thị trạng thái valid/invalid
+
+```typescript
+interface RecipientInputProps {
+  recipient: string;
+  onRecipientChange: (address: string) => void;
+  connectedAddress: string | null;
+}
+```
+
+### Thay Đổi 3: Tạo Component `TokenLifecyclePanel.tsx`
+
+Panel hiển thị trạng thái token lifecycle của ví đang kết nối:
+
+- **LOCKED**: Số dư từ `alloc(address).locked` - tokens mới mint, chưa activate
+- **ACTIVATED**: Số dư từ `alloc(address).activated` - sẵn sàng claim
+- **FLOWING**: Số dư từ `balanceOf(address)` - sử dụng tự do trong ví
+
+Các nút hành động:
+- **Activate All** - Gọi `contract.activate(lockedAmount)`
+- **Claim All** - Gọi `contract.claim(activatedAmount)`
+
+Tự động refresh sau mỗi giao dịch thành công.
+
+### Thay Đổi 4: Cập nhật `MintButton.tsx`
+
+Thêm props `recipient` để mint về ví bất kỳ:
+
+```typescript
+interface MintButtonProps {
+  result: ScoringResult | null;
+  actionType: string | null;
+  disabled?: boolean;
+  recipient?: string;  // ← THÊM MỚI
+}
+```
+
+Logic cập nhật:
+- Sử dụng `recipient` (nếu có) thay vì `address` (ví kết nối) làm `user`
+- Nonce lấy từ `recipient` (vì contract check nonce của user)
+- Signature vẫn do ví kết nối (Attester) ký
+
+### Thay Đổi 5: Cập nhật `MintPreview.tsx`
+
+Tích hợp các component mới:
+- State `recipient` để lưu địa chỉ ví người nhận
+- Thêm `<RecipientInput>` trước nút Mint
+- Thêm `<TokenLifecyclePanel>` sau nút Mint
+- Pass `recipient` vào `<MintButton>`
+
+---
+
+## 🎨 Giao Diện Mới
 
 ```text
-1. User chọn Action (VD: "DONATE")
-         ↓
-2. Tạo actionHash = keccak256("DONATE") 
-   (dùng để ký, KHÔNG truyền vào hàm)
-         ↓
-3. Tạo evidenceHash = keccak256({actionType, timestamp, pillars...})
-         ↓
-4. Lấy nonce từ contract: nonces[user]
-         ↓
-5. Ký EIP-712 với cấu trúc ĐÚNG:
-   PureLoveProof(user, actionHash, amount, evidenceHash, nonce)
-         ↓
-6. Gọi contract:
-   lockWithPPLP(user, "DONATE", amount, evidenceHash, [sig])
-         ↓
-7. Contract:
-   - Tạo h = keccak256("DONATE") nội bộ
-   - Verify signature với PureLoveProof
-   - Mint tokens nếu hợp lệ!
+┌───────────────────────────────────────────────────────────────┐
+│                      MINT PREVIEW                              │
+├───────────────────────────────────────────────────────────────┤
+│                                                                │
+│                    205.81 FUN                                  │
+│                 FUN Money to mint                              │
+│                                                                │
+├───────────────────────────────────────────────────────────────┤
+│  📍 Recipient Address                                          │
+│  ┌─────────────────────────────────────────────────────────┐  │
+│  │ 0xe32d50a0badE4cbD5B0d6120d3A5FD07f63694f1           📋 │  │
+│  └─────────────────────────────────────────────────────────┘  │
+│  [👛 Use My Wallet]                                            │
+├───────────────────────────────────────────────────────────────┤
+│                                                                │
+│  [🪙 MINT FUN MONEY ✨]                                        │
+│                                                                │
+├───────────────────────────────────────────────────────────────┤
+│  📊 MY TOKEN LIFECYCLE                      [🔄 Refresh]       │
+│  ┌─────────────────────────────────────────────────────────┐  │
+│  │ 🔒 LOCKED:      205.81 FUN    [🔓 ACTIVATE ALL]        │  │
+│  │ ✅ ACTIVATED:     0.00 FUN    [💰 CLAIM ALL]           │  │
+│  │ 💫 FLOWING:       0.00 FUN    (in wallet)              │  │
+│  └─────────────────────────────────────────────────────────┘  │
+│                                                                │
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ⚠️ Lưu Ý Kỹ Thuật Quan Trọng
+## 🔄 Luồng Hoạt Động
 
-1. **`action` truyền vào hàm là STRING** (VD: "DONATE"), contract sẽ tự hash bên trong
-2. **`actionHash` trong EIP-712 signature** là `keccak256("DONATE")` - phải khớp với hash nội bộ của contract
-3. **`nonce`** không truyền vào hàm, contract tự lấy từ `nonces[user]`, nhưng PHẢI có trong signature
-4. **`evidenceHash`** là bằng chứng của action - có thể hash từ metadata bất kỳ
-5. **Thứ tự fields trong EIP-712 RẤT QUAN TRỌNG** - phải khớp 100% với PPLP_TYPEHASH
+### A) Mint về ví khác
+
+```text
+1. User nhập địa chỉ ví recipient: 0xABC...
+         ↓
+2. Click "MINT FUN MONEY"
+         ↓
+3. Lấy nonce từ nonces[0xABC...] (recipient)
+         ↓
+4. Ký EIP-712 với user = 0xABC... (bằng ví Attester đang kết nối)
+         ↓
+5. Gọi lockWithPPLP(0xABC..., action, amount, evidenceHash, [sig])
+         ↓
+6. Tokens được mint vào alloc[0xABC...].locked
+```
+
+### B) Activate + Claim (chỉ ví đang kết nối)
+
+```text
+1. User xem TokenLifecyclePanel:
+   - LOCKED: 205.81 FUN
+   - ACTIVATED: 0 FUN
+   - FLOWING: 0 FUN
+         ↓
+2. Click "ACTIVATE ALL"
+   → MetaMask popup → Gọi contract.activate(205.81 * 10^18)
+         ↓
+3. Kết quả:
+   - LOCKED: 0 FUN
+   - ACTIVATED: 205.81 FUN ✅
+         ↓
+4. Click "CLAIM ALL"
+   → MetaMask popup → Gọi contract.claim(205.81 * 10^18)
+         ↓
+5. Kết quả:
+   - ACTIVATED: 0 FUN
+   - FLOWING: 205.81 FUN ✅ (có thể transfer!)
+```
+
+---
+
+## ⚠️ Lưu Ý Quan Trọng
+
+1. **Activate và Claim chỉ hoạt động cho ví đang kết nối** - Contract yêu cầu `msg.sender` phải là chủ sở hữu allocation
+
+2. **Mint có thể mint cho ví bất kỳ** - Miễn là người ký (Attester) hợp lệ
+
+3. **Nonce lấy của recipient** - Khi mint cho ví khác, phải lấy nonce từ ví đó để tránh replay attack
+
+4. **Signature do ví kết nối (Attester) ký** - Đây là chữ ký xác nhận action từ Attester
 
 ---
 
 ## ✅ Tiêu Chí Hoàn Thành
 
-1. EIP-712 TypeHash khớp chính xác: `PureLoveProof(address user, bytes32 actionHash, uint256 amount, bytes32 evidenceHash, uint256 nonce)`
-2. ABI đúng: `lockWithPPLP(address user, string action, uint256 amount, bytes32 evidenceHash, bytes[] sigs)`
-3. Gọi hàm với đúng 5 tham số (action là string, không phải hash)
-4. Signature off-chain verify thành công
-5. Transaction on-chain không còn revert!
+1. ✅ Có ô nhập địa chỉ ví người nhận trước nút Mint
+2. ✅ Có nút "Use My Wallet" để reset về ví đang kết nối
+3. ✅ Validate địa chỉ Ethereum hợp lệ trước khi cho phép mint
+4. ✅ Mint thành công về ví được chỉ định (bao gồm ví khác)
+5. ✅ Panel hiển thị số dư LOCKED / ACTIVATED / FLOWING
+6. ✅ Nút Activate hoạt động - chuyển LOCKED → ACTIVATED
+7. ✅ Nút Claim hoạt động - chuyển ACTIVATED → FLOWING
+8. ✅ Hiển thị transaction link trên BSCScan sau mỗi action
+9. ✅ Auto-refresh số dư sau mỗi giao dịch thành công
