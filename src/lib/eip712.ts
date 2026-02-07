@@ -1,4 +1,5 @@
 import type { TypedDataDomain, TypedDataField } from "ethers";
+import { verifyTypedData } from "ethers";
 import { getFunMoneyAddress, BSC_TESTNET_CONFIG } from "./web3";
 
 // PPLP type structure
@@ -27,12 +28,13 @@ export interface PPLPData {
  * - the target chain
  *
  * IMPORTANT: The `version` MUST match the deployed contract's EIP-712 domain.
- * We're targeting FUNMoneyProductionV1_2_1 on BSC Testnet.
+ * Deployed contract: FUNMoneyProductionV1_2_1 on BSC Testnet
+ * Contract source shows version "1.2.1" in EIP-712 domain
  */
 export function getEip712Domain(): TypedDataDomain {
   return {
     name: "FUN Money",
-    version: "1.3.0", // Must match contract's EIP-712 domain version
+    version: "1.2.1", // Must match deployed contract v1.2.1 EIP-712 domain
     chainId: BSC_TESTNET_CONFIG.chainId,
     verifyingContract: getFunMoneyAddress(),
   };
@@ -68,3 +70,66 @@ export async function signPPLP(signer: any, data: PPLPData): Promise<string> {
   return await signer.signTypedData(typedData.domain, typedData.types, typedData.message);
 }
 
+/**
+ * Verify a PPLP signature off-chain
+ * Returns the recovered signer address
+ */
+export function verifyPPLPSignature(data: PPLPData, signature: string): string {
+  const typedData = createPPLPTypedData(data);
+  
+  // Recover the signer address from the signature
+  return verifyTypedData(
+    typedData.domain,
+    typedData.types,
+    typedData.message,
+    signature
+  );
+}
+
+/**
+ * Debug info for signature verification
+ */
+export interface SignatureDebugInfo {
+  domain: TypedDataDomain;
+  message: Record<string, string>;
+  signature: string;
+  recoveredAddress: string;
+  expectedAddress: string;
+  isValid: boolean;
+}
+
+/**
+ * Verify signature and return debug info
+ */
+export function verifyPPLPSignatureWithDebug(
+  data: PPLPData,
+  signature: string,
+  expectedAddress: string
+): SignatureDebugInfo {
+  const typedData = createPPLPTypedData(data);
+  
+  let recoveredAddress = "";
+  let isValid = false;
+  
+  try {
+    recoveredAddress = verifyTypedData(
+      typedData.domain,
+      typedData.types,
+      typedData.message,
+      signature
+    );
+    isValid = recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
+  } catch (err) {
+    recoveredAddress = `Error: ${(err as Error).message}`;
+    isValid = false;
+  }
+  
+  return {
+    domain: typedData.domain,
+    message: typedData.message as Record<string, string>,
+    signature,
+    recoveredAddress,
+    expectedAddress,
+    isValid,
+  };
+}
