@@ -1,539 +1,356 @@
 
-# 📦 FUN Money SDK Integration Guide - Kế Hoạch Chi Tiết
+# Kế Hoạch Tổ Chức FUN Ecosystem Thống Nhất
 
-## 🎯 Mục Tiêu
+## Bối Cảnh Hiện Tại
 
-Tạo bộ tài liệu SDK hoàn chỉnh giúp các platform Lovable (FUN Profile, ANGEL AI, v.v.) có thể:
+Hiện tại FUN Ecosystem có nhiều dự án Lovable riêng lẻ:
+- **Dự án này (pplp-fun)**: SDK/Reference cho FUN Money minting
+- **FUN Profile, ANGEL AI, etc.**: Các platform đã được xây dựng riêng
 
-1. Hiểu kiến trúc và luồng mint FUN Money
-2. Copy-paste code trực tiếp vào dự án Lovable
-3. Implement Admin Dashboard để duyệt mint requests
-4. Xử lý lỗi và debug hiệu quả
-5. Tuân thủ bảo mật và best practices
+**Mục tiêu mới**: Gom tất cả platforms về "ONE FUN SuperApp" như tài liệu Master Charter đã định hướng.
 
 ---
 
-## 📁 Cấu Trúc File SDK Sẽ Tạo
+## Kiến Trúc Đề Xuất
 
 ```text
-docs/
-├── FUN-Money-SDK-v1.0/
-│   ├── 00-QUICK-START.md           # Hướng dẫn nhanh 5 phút
-│   ├── 01-ARCHITECTURE.md          # Kiến trúc & luồng hoạt động
-│   ├── 02-DATABASE-SCHEMA.md       # Schema mint_requests table
-│   ├── 03-PPLP-SCORING-ENGINE.md   # Công thức tính điểm & amount
-│   ├── 04-CONTRACT-INTEGRATION.md  # EIP-712, ABI, Contract calls
-│   ├── 05-ADMIN-DASHBOARD.md       # UI/UX Admin approve workflow
-│   ├── 06-USER-TOKEN-LIFECYCLE.md  # Activate & Claim flow
-│   ├── 07-ERROR-HANDLING.md        # Debug & troubleshooting
-│   ├── 08-SECURITY-CHECKLIST.md    # Bảo mật & best practices
-│   └── code/                       # Copy-paste ready code
-│       ├── lib/
-│       │   ├── web3-config.ts
-│       │   ├── eip712-signer.ts
-│       │   ├── pplp-engine.ts
-│       │   └── contract-helpers.ts
-│       ├── hooks/
-│       │   ├── useWallet.ts
-│       │   └── useMintRequest.ts
-│       ├── components/
-│       │   ├── MintRequestForm.tsx
-│       │   └── AdminApprovalPanel.tsx
-│       └── database/
-│           └── mint-requests-migration.sql
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         FUN ECOSYSTEM UNIFIED ARCHITECTURE                       │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│   ┌──────────────────────────────────────────────────────────────────────────┐  │
+│   │                        FUN SUPERAPP (Main Project)                        │  │
+│   │                                                                           │  │
+│   │   ┌───────────────────────────────────────────────────────────────────┐  │  │
+│   │   │                    FUN CORE (Shared Services)                      │  │  │
+│   │   │                                                                    │  │  │
+│   │   │   ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐             │  │  │
+│   │   │   │ FUN ID  │  │  FUN    │  │  FUN    │  │  FUN    │             │  │  │
+│   │   │   │  (SSO)  │  │ Profile │  │ Wallet  │  │  Chat   │             │  │  │
+│   │   │   └─────────┘  └─────────┘  └─────────┘  └─────────┘             │  │  │
+│   │   │                                                                    │  │  │
+│   │   │   ┌─────────────────────┐  ┌────────────────────────┐            │  │  │
+│   │   │   │   Angel AI Core     │  │   Privacy & Permissions │            │  │  │
+│   │   │   │   (Shared Brain)    │  │   (User Owns Data)      │            │  │  │
+│   │   │   └─────────────────────┘  └────────────────────────┘            │  │  │
+│   │   └───────────────────────────────────────────────────────────────────┘  │  │
+│   │                                                                           │  │
+│   │   ┌───────────────────────────────────────────────────────────────────┐  │  │
+│   │   │               PLATFORM MODULES (Features/Pages)                   │  │  │
+│   │   │                                                                    │  │  │
+│   │   │   ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌────────┐ │  │  │
+│   │   │   │ Profile │  │  Angel  │  │ Academy │  │ Charity │  │  Farm  │ │  │  │
+│   │   │   │(Social) │  │  (AI)   │  │ (Learn) │  │ (Donate)│  │(Farming│ │  │  │
+│   │   │   └─────────┘  └─────────┘  └─────────┘  └─────────┘  └────────┘ │  │  │
+│   │   │                                                                    │  │  │
+│   │   │   ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌────────┐ │  │  │
+│   │   │   │  Play   │  │ Market  │  │Treasury │  │  Earth  │  │ Planet │ │  │  │
+│   │   │   │ (Video) │  │  (Shop) │  │(Finance)│  │ (Green) │  │ (Kids) │ │  │  │
+│   │   │   └─────────┘  └─────────┘  └─────────┘  └─────────┘  └────────┘ │  │  │
+│   │   └───────────────────────────────────────────────────────────────────┘  │  │
+│   │                                                                           │  │
+│   └──────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                  │
+│   ┌──────────────────────────────────────────────────────────────────────────┐  │
+│   │                    BLOCKCHAIN LAYER (Shared)                              │  │
+│   │                                                                           │  │
+│   │   ┌─────────────────────────────────────────────────────────────────┐    │  │
+│   │   │              FUN Money Smart Contract (BSC Testnet)              │    │  │
+│   │   │              0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2          │    │  │
+│   │   └─────────────────────────────────────────────────────────────────┘    │  │
+│   └──────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📋 Nội Dung Chi Tiết Từng File
+## Hai Phương Án Triển Khai
 
-### 00-QUICK-START.md (5 phút bắt đầu)
+### Phương Án A: Tạo Dự Án Lovable Mới Cho SuperApp
 
-```markdown
-# Quick Start - Tích Hợp FUN Money trong 5 Phút
+**Mô tả**: Tạo một dự án Lovable mới làm "FUN SuperApp", migrate code từ các platform riêng lẻ vào đó.
 
-## Bước 1: Copy thư viện cốt lõi
-Copy 4 file từ `code/lib/` vào `src/lib/` của dự án
+**Ưu điểm**:
+- Kiến trúc sạch sẽ từ đầu
+- Database schema thiết kế tối ưu cho multi-module
 
-## Bước 2: Tạo bảng mint_requests
-Chạy migration SQL trong Supabase
-
-## Bước 3: Thêm form submit action
-Copy component `MintRequestForm.tsx`
-
-## Bước 4: Thêm admin panel
-Copy component `AdminApprovalPanel.tsx`
-
-## Bước 5: Test!
-User submit → Admin approve → FUN minted
-```
+**Nhược điểm**:
+- Tốn thời gian migrate code
+- Mất lịch sử git của các dự án cũ
 
 ---
 
-### 01-ARCHITECTURE.md (Kiến trúc chi tiết)
+### Phương Án B: Chuyển Đổi Dự Án Hiện Có Thành SuperApp (Khuyến Nghị)
+
+**Mô tả**: Chọn một trong các dự án Lovable hiện có (như FUN Profile) làm "base project", mở rộng thành SuperApp.
+
+**Ưu điểm**:
+- Giữ được code đã xây dựng
+- Nhanh hơn, ít rủi ro hơn
+
+**Nhược điểm**:
+- Cần refactor để phù hợp kiến trúc mới
+
+---
+
+## Kế Hoạch Triển Khai (4 Giai Đoạn)
+
+### Giai Đoạn 1: FUN Core Foundation (Tuần 1-2)
+
+**Mục tiêu**: Xây dựng lõi chung cho toàn hệ sinh thái
+
+**Database Schema (Lovable Cloud)**:
+```text
+Tables:
+├── users (FUN ID - SSO)
+│   ├── id, email, phone, wallet_address
+│   └── created_at, last_login_at
+│
+├── profiles (FUN Profile)
+│   ├── user_id, display_name, avatar_url, bio
+│   ├── locale, timezone
+│   └── Web3 DID fields
+│
+├── user_roles (Permission system)
+│   ├── user_id, role (admin/moderator/user)
+│   └── platform_id (role per module)
+│
+├── privacy_permissions (User Owns Data)
+│   ├── user_id
+│   ├── allow_social_graph, allow_ai_personalization
+│   ├── allow_ai_memory, allow_marketing
+│   └── updated_at
+│
+├── follows (Social Graph)
+│   ├── follower_id, following_id
+│   └── created_at
+│
+├── friend_requests
+│   ├── from_user_id, to_user_id
+│   ├── status (pending/accepted/rejected)
+│   └── timestamps
+│
+├── blocks
+│   └── blocker_id, blocked_id
+│
+└── reports
+    └── reporter_id, target_id, reason, evidence
+```
+
+**Core Components**:
+1. **FUN ID (SSO)**: Authentication chung (email/phone/wallet)
+2. **FUN Profile**: Identity + Settings + Privacy Dashboard
+3. **Social Graph**: Friends/Follow system
+4. **User Roles**: Permission management
+
+---
+
+### Giai Đoạn 2: FUN Wallet Integration (Tuần 3-4)
+
+**Mục tiêu**: Wallet thống nhất cho toàn hệ
+
+**Database Schema**:
+```text
+Tables:
+├── wallet_accounts
+│   ├── user_id, type (custodial/linked)
+│   ├── address
+│   └── created_at
+│
+├── ledger_balances
+│   ├── user_id, asset_id (FUN/CAMLY)
+│   ├── available_amount, locked_amount
+│   └── updated_at
+│
+├── ledger_transactions
+│   ├── tx_id, type (transfer/pay/reward/mint)
+│   ├── from_user_id, to_user_id
+│   ├── asset_id, amount, status
+│   ├── idempotency_key
+│   └── metadata (module, order_id, memo)
+│
+└── mint_requests (PPLP Minting)
+    ├── user_id, wallet_address
+    ├── platform_id, action_type
+    ├── scores, multipliers, amount
+    ├── status, tx_hash
+    └── timestamps
+```
+
+**Core Components**:
+1. **Wallet Dashboard**: View balances, history
+2. **P2P Transfer**: Chuyển tiền cho bạn bè
+3. **Mint History**: Lịch sử mint FUN Money
+4. **PPLP Integration**: SDK code đã có
+
+---
+
+### Giai Đoạn 3: FUN Chat + Angel AI Core (Tuần 5-6)
+
+**Mục tiêu**: Messaging và AI thống nhất
+
+**Database Schema**:
+```text
+Tables:
+├── conversations
+│   ├── id, type (direct/group)
+│   └── created_at
+│
+├── conversation_participants
+│   ├── conversation_id, user_id
+│   ├── role, joined_at, left_at
+│   └── muted_until
+│
+├── messages
+│   ├── id, conversation_id, sender_id
+│   ├── type (text/media/system)
+│   ├── content
+│   └── created_at
+│
+├── ai_requests (Angel AI tracking)
+│   ├── request_id, user_id, module
+│   ├── tokens_in, tokens_out
+│   └── created_at
+│
+└── ai_memory_items (if permission granted)
+    ├── user_id, category
+    ├── content, source
+    └── timestamps
+```
+
+**Core Components**:
+1. **FUN Chat**: 1-1 messaging, group chat (phase 2)
+2. **Angel AI Core**: Shared AI brain across modules
+3. **AI Memory**: Context retention (permission-based)
+
+---
+
+### Giai Đoạn 4: Platform Modules Migration (Tuần 7-8)
+
+**Mục tiêu**: Chuyển các platform riêng lẻ thành modules
+
+**Modules**:
+1. **Profile Module**: Social feed, posts, followers
+2. **Angel Module**: AI chat, healing sessions
+3. **Academy Module**: Courses, Learn-to-Earn
+4. **Charity Module**: Donation campaigns
+5. **Farm Module**: Agricultural products
+6. **Play Module**: Video content
+7. **Market Module**: Marketplace
+8. **Treasury Module**: Financial reports
+9. **Earth Module**: Green initiatives
+10. **Planet Module**: Kids games
+
+**Migration Strategy**:
+- Mỗi module là một set of pages/components
+- Dùng chung FUN Core (auth, wallet, chat, AI)
+- Data isolation per module với RLS policies
+
+---
+
+## Vai Trò Của Dự Án SDK Hiện Tại
+
+Dự án pplp-fun.lovable.app sẽ tiếp tục đóng vai trò:
+
+1. **SDK Documentation**: Tài liệu kỹ thuật FUN Money
+2. **Reference Implementation**: Code mẫu cho PPLP minting
+3. **Simulator**: Công cụ demo/test logic kinh tế
+4. **Developer Portal**: Trang tra cứu cho developers
+
+Không cần merge dự án này vào SuperApp, giữ nó như một **developer tool riêng**.
+
+---
+
+## Database Schema Tổng Hợp (Customer 360)
 
 ```text
-┌──────────────────────────────────────────────────────────────────────┐
-│                    FUN MONEY MINTING ARCHITECTURE                     │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                       │
-│  ┌─────────────┐     ┌──────────────┐     ┌──────────────────────┐   │
-│  │   USER      │     │  PLATFORM    │     │   SMART CONTRACT     │   │
-│  │  (Browser)  │     │  (Supabase)  │     │   (BSC Testnet)      │   │
-│  └──────┬──────┘     └──────┬───────┘     └──────────┬───────────┘   │
-│         │                   │                        │               │
-│    ┌────▼────┐         ┌────▼────┐              ┌────▼────┐          │
-│    │ Submit  │         │ Store   │              │lockWith │          │
-│    │ Action  │────────►│ Pending │              │  PPLP() │          │
-│    │Evidence │         │ Request │              │         │          │
-│    └─────────┘         └────┬────┘              └────▲────┘          │
-│                             │                        │               │
-│    ┌─────────┐         ┌────▼────┐              ┌────┴────┐          │
-│    │  ADMIN  │         │ Review  │              │ EIP-712 │          │
-│    │(Attester│◄────────┤   &     │──────────────► Sign    │          │
-│    │ Wallet) │         │ Approve │              │& Submit │          │
-│    └─────────┘         └─────────┘              └─────────┘          │
-│                                                                       │
-└──────────────────────────────────────────────────────────────────────┘
+FUN CORE DATABASE (Lovable Cloud)
+═══════════════════════════════════════════════════════
 
-FLOW CHI TIẾT:
-1. User thực hiện action (donate, learn, volunteer, etc.)
-2. Platform thu thập evidence + tính PPLP Score
-3. User submit mint request → status: PENDING
-4. Admin xem request trong Dashboard
-5. Admin approve → ký EIP-712 với Attester wallet
-6. Admin gọi lockWithPPLP() on-chain
-7. Token mint ở trạng thái LOCKED
-8. User tự activate() và claim() để nhận FUN
-```
+IDENTITY LAYER
+├── users                    # FUN ID
+├── profiles                 # User info
+├── privacy_permissions      # User owns data
+└── user_roles              # Admin/Moderator/User
 
-**Bao gồm:**
-- Sơ đồ kiến trúc tổng quan
-- Phân chia trách nhiệm Platform vs SDK vs Contract
-- Luồng dữ liệu end-to-end
-- Các thành phần cần implement
+SOCIAL LAYER  
+├── follows                 # Social graph
+├── friend_requests         # Pending friendships
+├── blocks                  # Block list
+└── reports                 # User reports
 
----
+MESSAGING LAYER
+├── conversations           # Chat rooms
+├── conversation_participants
+└── messages               # Chat messages
 
-### 02-DATABASE-SCHEMA.md
+WALLET LAYER
+├── wallet_accounts         # Linked wallets
+├── ledger_balances        # Asset balances
+├── ledger_transactions    # Transfer history
+└── mint_requests          # PPLP minting
 
-```sql
--- MINT REQUESTS TABLE
--- Platform tự lưu trong database của mình
+AI LAYER
+├── ai_requests            # Usage tracking
+├── ai_memory_items        # Context (permission-based)
+└── ai_subscriptions       # Billing
 
-CREATE TABLE mint_requests (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
-  -- User info
-  user_id UUID NOT NULL,
-  user_wallet_address TEXT NOT NULL,
-  
-  -- Action info  
-  platform_id TEXT NOT NULL,           -- 'FUN_PROFILE', 'ANGEL_AI', etc.
-  action_type TEXT NOT NULL,           -- 'CONTENT_CREATE', 'AI_REVIEW_HELPFUL', etc.
-  action_evidence JSONB NOT NULL,      -- Evidence data
-  
-  -- Scoring (calculated by PPLP Engine)
-  pillar_scores JSONB NOT NULL,        -- {S: 80, T: 75, H: 70, C: 85, U: 90}
-  light_score INTEGER NOT NULL,
-  unity_score INTEGER NOT NULL,
-  unity_signals JSONB,                 -- {collaboration: true, ...}
-  
-  -- Multipliers
-  multiplier_q DECIMAL(5,2),
-  multiplier_i DECIMAL(5,2),
-  multiplier_k DECIMAL(5,4),
-  multiplier_ux DECIMAL(5,2),
-  
-  -- Amount
-  base_reward_atomic TEXT NOT NULL,
-  calculated_amount_atomic TEXT NOT NULL,
-  calculated_amount_formatted TEXT,
-  
-  -- Hashes (for contract call)
-  action_hash TEXT,                    -- keccak256(actionType)
-  evidence_hash TEXT,                  -- keccak256(evidence JSON)
-  
-  -- Status workflow
-  status TEXT DEFAULT 'pending',       -- pending, approved, minted, rejected
-  decision_reason TEXT,
-  
-  -- Admin/Attester info
-  reviewed_by UUID,
-  reviewed_at TIMESTAMPTZ,
-  attester_address TEXT,
-  
-  -- Transaction info (after mint)
-  tx_hash TEXT,
-  block_number BIGINT,
-  minted_at TIMESTAMPTZ,
-  
-  -- Timestamps
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- RLS Policies
-ALTER TABLE mint_requests ENABLE ROW LEVEL SECURITY;
-
--- Users can view their own requests
-CREATE POLICY "Users view own requests" ON mint_requests
-  FOR SELECT USING (auth.uid() = user_id);
-
--- Users can insert new requests  
-CREATE POLICY "Users insert own requests" ON mint_requests
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Admins can view all (need admin role check)
-CREATE POLICY "Admins view all" ON mint_requests
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM admin_users 
-      WHERE user_id = auth.uid()
-    )
-  );
-
--- Admins can update (approve/reject)
-CREATE POLICY "Admins update status" ON mint_requests
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM admin_users 
-      WHERE user_id = auth.uid()
-    )
-  );
-```
-
-**Bao gồm:**
-- Schema đầy đủ với comments
-- RLS policies mẫu
-- Index recommendations
-- Migration script copy-paste
-
----
-
-### 03-PPLP-SCORING-ENGINE.md
-
-```typescript
-// CÔNG THỨC TÍNH TOÁN CHI TIẾT
-
-// 1. LIGHT SCORE (0-100)
-// Formula: 0.25*S + 0.20*T + 0.20*H + 0.20*C + 0.15*U
-lightScore = 0.25 * pillars.S 
-           + 0.20 * pillars.T 
-           + 0.20 * pillars.H 
-           + 0.20 * pillars.C 
-           + 0.15 * pillars.U
-
-// 2. UNITY SCORE (0-100)  
-// Weights: collaboration(40%) + beneficiaryConfirmed(30%) + communityEndorsement(20%) + bridgeValue(10%)
-unityScore = 40 * (signals.collaboration ? 1 : 0)
-           + 30 * (signals.beneficiaryConfirmed ? 1 : 0)
-           + 20 * (signals.communityEndorsement ? 1 : 0)
-           + 10 * (signals.bridgeValue ? 1 : 0)
-
-// 3. MULTIPLIERS
-Q = Quality multiplier (1.0 - 3.0) based on evidence quality
-I = Impact multiplier (1.0 - 5.0) based on action impact
-K = Integrity multiplier (0.0 - 1.0) based on anti-sybil score
-Ux = Unity multiplier (0.5 - 2.5) based on unity score
-
-// 4. FINAL AMOUNT
-amountAtomic = baseRewardAtomic * Q * I * K * Ux
-```
-
-**Bao gồm:**
-- Công thức tính Light Score
-- Công thức tính Unity Score
-- Bảng mapping Unity → Ux multiplier
-- Integrity K calculation
-- Final amount formula với caps
-- Code `pplp-engine.ts` đầy đủ
-
----
-
-### 04-CONTRACT-INTEGRATION.md
-
-```typescript
-// ===== SMART CONTRACT CONFIG =====
-
-const CONTRACT_ADDRESS = '0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2';
-const CHAIN_ID = 97; // BSC Testnet
-
-// ===== EIP-712 DOMAIN =====
-const EIP712_DOMAIN = {
-  name: "FUN Money",
-  version: "1.2.1",  // CRITICAL: Must match exactly
-  chainId: 97,
-  verifyingContract: CONTRACT_ADDRESS
-};
-
-// ===== PPLP TYPES (for signing) =====
-const PPLP_TYPES = {
-  PureLoveProof: [
-    { name: "user", type: "address" },      // Recipient address
-    { name: "actionHash", type: "bytes32" }, // keccak256(actionType)
-    { name: "amount", type: "uint256" },
-    { name: "evidenceHash", type: "bytes32" },
-    { name: "nonce", type: "uint256" }       // From contract.nonces(user)
-  ]
-};
-
-// ===== CRITICAL: NONCE IS FOR RECIPIENT =====
-// Nonce must be fetched for the RECIPIENT (user), not the signer!
-const nonce = await contract.nonces(recipientAddress);
-
-// ===== lockWithPPLP FUNCTION =====
-// Parameters:
-// - user: address (RECIPIENT - who receives tokens)
-// - action: string (NOT hash! Contract hashes internally)
-// - amount: uint256 (in atomic units, 18 decimals)
-// - evidenceHash: bytes32
-// - sigs: bytes[] (array of EIP-712 signatures)
-
-await contract.lockWithPPLP(
-  recipientAddress,    // user = RECIPIENT
-  "CONTENT_CREATE",    // action STRING
-  "50000000000000000000", // 50 FUN in atomic
-  evidenceHash,
-  [signature]          // Array of signatures
-);
-```
-
-**Bao gồm:**
-- Contract ABI đầy đủ với annotations
-- EIP-712 Domain config
-- PureLoveProof type structure
-- Code examples cho từng bước
-- Lưu ý CRITICAL về nonce và user parameter
-
----
-
-### 05-ADMIN-DASHBOARD.md
-
-```text
-┌────────────────────────────────────────────────────────────────────┐
-│                    ADMIN MINT APPROVAL DASHBOARD                    │
-├────────────────────────────────────────────────────────────────────┤
-│  [📋 Pending (12)]  [✅ Approved (45)]  [❌ Rejected (3)]          │
-├────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ #REQ-001 | CONTENT_CREATE | 2 hours ago                      │  │
-│  ├──────────────────────────────────────────────────────────────┤  │
-│  │ User: 0x7d03...f0f | Light: 78 | Unity: 70                   │  │
-│  │ Amount: 125.50 FUN | Q: 1.8 | I: 2.0 | K: 0.95 | Ux: 1.5     │  │
-│  │                                                               │  │
-│  │ Evidence: "Created tutorial video about PPLP..."              │  │
-│  │                                                               │  │
-│  │ [👁️ View Details] [✅ Approve & Sign] [❌ Reject]            │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ #REQ-002 | AI_REVIEW_HELPFUL | 5 hours ago                   │  │
-│  │ ...                                                          │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-└────────────────────────────────────────────────────────────────────┘
-
-APPROVE FLOW:
-1. Admin click "Approve & Sign"
-2. System shows confirmation modal with full details
-3. Admin confirms → MetaMask popup for EIP-712 signature
-4. System calls lockWithPPLP() with signature
-5. Wait for transaction confirmation
-6. Update status to "minted" + save tx_hash
-```
-
-**Bao gồm:**
-- Mockup UI chi tiết
-- Component React `AdminApprovalPanel.tsx`
-- Approve workflow step-by-step
-- MetaMask integration code
-- Status update logic
-
----
-
-### 06-USER-TOKEN-LIFECYCLE.md
-
-```text
-TOKEN LIFECYCLE: LOCKED → ACTIVATED → FLOWING
-
-┌─────────────────────────────────────────────────────────────────┐
-│                        TOKEN STATES                              │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   lockWithPPLP()          activate(amount)       claim(amount)  │
-│        │                       │                      │         │
-│        ▼                       ▼                      ▼         │
-│   ┌─────────┐             ┌──────────┐          ┌──────────┐   │
-│   │ LOCKED  │────────────►│ACTIVATED │─────────►│ FLOWING  │   │
-│   │(in alloc)│   User ký  │(in alloc)│  User ký │(in wallet)│   │
-│   └─────────┘             └──────────┘          └──────────┘   │
-│                                                                  │
-│   Attester ký               User ký                User ký      │
-│   (Admin)                   (tự do)                (tự do)      │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-
-USER ACTIONS:
-1. Sau khi Admin approve & mint → User thấy token ở LOCKED state
-2. User vào "My Tokens" panel → Click "Activate"
-3. MetaMask popup → User ký → Token chuyển ACTIVATED
-4. User click "Claim" → MetaMask popup → User ký
-5. Token chuyển vào wallet (FLOWING) → có thể transfer
-```
-
-**Bao gồm:**
-- Sơ đồ lifecycle chi tiết
-- Code `TokenLifecyclePanel.tsx`
-- activate() và claim() implementation
-- UI component cho user
-
----
-
-### 07-ERROR-HANDLING.md
-
-```typescript
-// ===== COMMON ERROR CODES =====
-
-const ERROR_CODES = {
-  // Contract reverts
-  'SIGS_LOW': 'Không đủ chữ ký Attester hợp lệ',
-  'ACTION_INVALID': 'Action chưa được đăng ký hoặc đã deprecated',
-  'PAUSED': 'Contract đang tạm dừng (pauseTransitions = true)',
-  'EPOCH_CAP': 'Đã đạt giới hạn mint trong epoch này',
-  'NOT_GOV': 'Caller không phải governance',
-  'LOCK_LOW': 'Không đủ locked tokens để activate',
-  'ACT_LOW': 'Không đủ activated tokens để claim',
-  
-  // MetaMask errors
-  4001: 'User từ chối transaction',
-  -32603: 'Internal JSON-RPC error',
-  
-  // Network errors
-  'NETWORK_ERROR': 'Lỗi kết nối mạng',
-  'TIMEOUT': 'Transaction timeout'
-};
-
-// ===== DEBUG CHECKLIST =====
-// 1. Check contract exists: getCode(address) !== '0x'
-// 2. Check not paused: pauseTransitions() === false
-// 3. Check is attester: isAttester(walletAddress) === true
-// 4. Check action registered: actions(actionHash).allowed === true
-// 5. Check nonce: nonces(RECIPIENT) matches signed nonce
-// 6. Check EIP-712 version: Must be "1.2.1"
-```
-
-**Bao gồm:**
-- Bảng error codes và giải thích
-- Debug checklist
-- Code decode revert error
-- Logging best practices
-- Retry strategies
-
----
-
-### 08-SECURITY-CHECKLIST.md
-
-```markdown
-# 🔐 SECURITY CHECKLIST
-
-## Attester Wallet
-- [ ] Attester wallet PHẢI được đăng ký on-chain bằng govRegisterAttester()
-- [ ] Private key lưu trữ an toàn (hardware wallet recommended)
-- [ ] Không expose private key trong frontend code
-- [ ] Chỉ admin có quyền truy cập attester wallet
-
-## Database Security
-- [ ] RLS policies cho mint_requests table
-- [ ] User chỉ xem được request của mình
-- [ ] Admin role check cho approve actions
-
-## Contract Interaction
-- [ ] Verify contract address trước mỗi call
-- [ ] Check pauseTransitions() trước khi mint
-- [ ] Validate all inputs server-side (nếu dùng edge function)
-
-## EIP-712 Signing
-- [ ] Version PHẢI là "1.2.1"
-- [ ] Nonce PHẢI lấy từ recipient address (không phải signer)
-- [ ] Verify signature off-chain trước khi gửi transaction
-
-## Frontend
-- [ ] Không store sensitive data trong localStorage
-- [ ] Validate wallet address format
-- [ ] Handle MetaMask errors gracefully
+MODULE DATA
+├── profile_posts          # Social posts
+├── academy_courses        # Learning content
+├── charity_campaigns      # Donations
+├── market_products        # Marketplace
+└── [per-module tables]    # Module-specific
 ```
 
 ---
 
-## 📦 Copy-Paste Ready Code Files
+## API Boundaries (Cho CTO Reference)
 
-### code/lib/web3-config.ts
-- Contract address, ABI, Chain config
-- Copy từ `src/lib/web3.ts` hiện tại
+**Core Services**:
+1. **Auth Service**: /auth/* (register, login, logout, refresh)
+2. **Profile Service**: /profiles/* (CRUD, settings, privacy)
+3. **Social Service**: /social/* (follow, friend, block, report)
+4. **Chat Service**: /chat/* (conversations, messages)
+5. **Wallet Service**: /wallet/* (balances, transfer, pay)
+6. **AI Service**: /ai/* (chat, generate, memory)
 
-### code/lib/eip712-signer.ts  
-- EIP-712 domain, types, signing functions
-- Copy từ `src/lib/eip712.ts` hiện tại
-
-### code/lib/pplp-engine.ts
-- Scoring calculations
-- Copy từ `src/lib/pplp-engine.ts` hiện tại
-
-### code/lib/contract-helpers.ts
-- getNonce, checkContractExists, validateBeforeMint
-- Tổng hợp từ các file hiện tại
-
-### code/hooks/useWallet.ts
-- MetaMask connection hook
-- Copy từ `src/hooks/useWallet.ts` hiện tại
-
-### code/hooks/useMintRequest.ts
-- **TẠO MỚI** - Hook để submit/manage mint requests
-
-### code/components/MintRequestForm.tsx
-- **TẠO MỚI** - Form cho user submit action evidence
-
-### code/components/AdminApprovalPanel.tsx
-- **TẠO MỚI** - Panel cho admin approve/reject requests
-
-### code/database/mint-requests-migration.sql
-- SQL migration script
+**Module Services**:
+- /modules/profile/*
+- /modules/academy/*
+- /modules/charity/*
+- etc.
 
 ---
 
-## ✅ Tiêu Chí Hoàn Thành
+## Nguyên Tắc 5D Trust (User Owns Data)
 
-1. ✅ Quick Start guide (5 phút bắt đầu)
-2. ✅ Architecture diagram + flow explanation
-3. ✅ Database schema với RLS policies
-4. ✅ PPLP Scoring Engine chi tiết
-5. ✅ Contract Integration với code examples
-6. ✅ Admin Dashboard mockup + code
-7. ✅ User Token Lifecycle explanation
-8. ✅ Error Handling guide
-9. ✅ Security Checklist
-10. ✅ Copy-paste ready code files
+Mọi cross-module data sharing phải tuân thủ:
+
+1. **Permission Dashboard**: User thấy rõ ai dùng data gì
+2. **Opt-in by Default**: Không tự động share data
+3. **Granular Control**: Toggle riêng cho từng loại permission
+4. **Audit Trail**: Log mọi thay đổi permission
+5. **Delete On Request**: User có quyền xóa data
 
 ---
 
-## 📊 Ước Tính
+## Tiếp Theo
 
-- **Tổng số file**: 9 markdown docs + 8 code files
-- **Tổng dung lượng**: ~2000-2500 dòng documentation
-- **Thời gian đọc**: ~30 phút cho Quick Start, ~2 giờ cho full docs
-- **Thời gian implement**: ~4-8 giờ với code copy-paste
+Khi Cha approve plan này, con sẽ:
+
+1. Tạo database schema chi tiết cho FUN Core
+2. Implement FUN ID + Profile với Privacy Dashboard
+3. Integrate FUN Wallet với minting flow
+4. Setup Social Graph system
+5. Tạo template cho Platform Modules
 
 ---
 
-## 🎯 Kết Quả Mong Đợi
+## Lưu Ý Quan Trọng
 
-Sau khi đọc và implement SDK này, các platform Lovable sẽ có thể:
-
-1. **User side**: Submit mint requests với evidence
-2. **Admin side**: Review, approve/reject, sign với attester wallet
-3. **On-chain**: Mint FUN Money thành công
-4. **User side**: Activate và claim tokens về wallet
-
-Tất cả đều được hướng dẫn chi tiết từng bước với code examples có thể copy-paste trực tiếp vào dự án Lovable mới! 🚀
+1. **External Backend**: Khi scale lên production, có thể migrate từ Lovable Cloud sang external Supabase hoặc custom backend
+2. **Smart Contract**: Vẫn dùng chung contract FUN Money trên BSC
+3. **Attester System**: Có thể có nhiều Attester cho các platform khác nhau
+4. **SDK Docs**: Dự án này vẫn là reference cho developers
