@@ -1,5 +1,22 @@
-
 # Kế Hoạch Tổ Chức FUN Ecosystem Thống Nhất
+
+## ✅ PHASE 1 PROGRESS: FUN Core Foundation
+
+### Đã hoàn thành (2026-02-08):
+- ✅ Database schema: `user_roles`, `privacy_permissions`, `follows`, `friend_requests`, `blocks`, `reports`, `audit_logs`
+- ✅ Security functions: `has_role()`, `has_platform_role()`, `is_blocked()`
+- ✅ RLS policies cho tất cả tables mới
+- ✅ Auto-trigger tạo permissions + default role khi user đăng ký
+- ✅ Types: `src/types/fun-core.types.ts`
+- ✅ Hooks: `usePrivacyPermissions`, `useUserRoles`, `useSocialGraph`
+
+### Tiếp theo:
+- [ ] Privacy Dashboard UI component
+- [ ] Profile Settings page với Privacy controls
+- [ ] Social Graph UI (followers/following list)
+- [ ] Admin Panel cho role management
+
+---
 
 ## Bối Cảnh Hiện Tại
 
