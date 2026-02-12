@@ -1,373 +1,195 @@
-# Kế Hoạch Tổ Chức FUN Ecosystem Thống Nhất
 
-## ✅ PHASE 1 PROGRESS: FUN Core Foundation
 
-### Đã hoàn thành (2026-02-08):
-- ✅ Database schema: `user_roles`, `privacy_permissions`, `follows`, `friend_requests`, `blocks`, `reports`, `audit_logs`
-- ✅ Security functions: `has_role()`, `has_platform_role()`, `is_blocked()`
-- ✅ RLS policies cho tất cả tables mới
-- ✅ Auto-trigger tạo permissions + default role khi user đăng ký
-- ✅ Types: `src/types/fun-core.types.ts`
-- ✅ Hooks: `usePrivacyPermissions`, `useUserRoles`, `useSocialGraph`
+# Ke Hoach Trien Khai: Migration Prompt B + Quality Gate Prompt F
 
-### Tiếp theo:
-- [ ] Privacy Dashboard UI component
-- [ ] Profile Settings page với Privacy controls
-- [ ] Social Graph UI (followers/following list)
-- [ ] Admin Panel cho role management
+## Tong Quan
+
+Con da chon:
+- **Monorepo** (Option A): Xay du an hien tai thanh FUN SuperApp
+- **Migration cho Prompt B**: Bo sung `username` column + `events` table
+- **Edge Functions**: Lam API layer cho cac endpoint nhay cam
+- **Prompt F**: Tao `docs/quality-gate.md`
+
+Ke hoach gom **4 phan chinh**, thuc hien trong 1 phien lam viec.
 
 ---
 
-## Bối Cảnh Hiện Tại
+## Phan 1: Quality Gate (Prompt F)
 
-Hiện tại FUN Ecosystem có nhiều dự án Lovable riêng lẻ:
-- **Dự án này (pplp-fun)**: SDK/Reference cho FUN Money minting
-- **FUN Profile, ANGEL AI, etc.**: Các platform đã được xây dựng riêng
+Tao file `docs/quality-gate.md` lam kim chi nam cho moi lan release.
 
-**Mục tiêu mới**: Gom tất cả platforms về "ONE FUN SuperApp" như tài liệu Master Charter đã định hướng.
+**Noi dung:**
+- Spec clarity checklist
+- UI microcopy rules (tich cuc, nang nang luong)
+- Security checks (auth, rate limit, injection)
+- QA pass cho core flows (auth, profile, wallet, events)
+- Audit log requirement cho permissions + wallet
+- Rollback plan template
 
 ---
 
-## Kiến Trúc Đề Xuất
+## Phan 2: Database Migration (Prompt B bo sung)
+
+### 2.1 Them `username` vao `profiles`
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                         FUN ECOSYSTEM UNIFIED ARCHITECTURE                       │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                  │
-│   ┌──────────────────────────────────────────────────────────────────────────┐  │
-│   │                        FUN SUPERAPP (Main Project)                        │  │
-│   │                                                                           │  │
-│   │   ┌───────────────────────────────────────────────────────────────────┐  │  │
-│   │   │                    FUN CORE (Shared Services)                      │  │  │
-│   │   │                                                                    │  │  │
-│   │   │   ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐             │  │  │
-│   │   │   │ FUN ID  │  │  FUN    │  │  FUN    │  │  FUN    │             │  │  │
-│   │   │   │  (SSO)  │  │ Profile │  │ Wallet  │  │  Chat   │             │  │  │
-│   │   │   └─────────┘  └─────────┘  └─────────┘  └─────────┘             │  │  │
-│   │   │                                                                    │  │  │
-│   │   │   ┌─────────────────────┐  ┌────────────────────────┐            │  │  │
-│   │   │   │   Angel AI Core     │  │   Privacy & Permissions │            │  │  │
-│   │   │   │   (Shared Brain)    │  │   (User Owns Data)      │            │  │  │
-│   │   │   └─────────────────────┘  └────────────────────────┘            │  │  │
-│   │   └───────────────────────────────────────────────────────────────────┘  │  │
-│   │                                                                           │  │
-│   │   ┌───────────────────────────────────────────────────────────────────┐  │  │
-│   │   │               PLATFORM MODULES (Features/Pages)                   │  │  │
-│   │   │                                                                    │  │  │
-│   │   │   ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌────────┐ │  │  │
-│   │   │   │ Profile │  │  Angel  │  │ Academy │  │ Charity │  │  Farm  │ │  │  │
-│   │   │   │(Social) │  │  (AI)   │  │ (Learn) │  │ (Donate)│  │(Farming│ │  │  │
-│   │   │   └─────────┘  └─────────┘  └─────────┘  └─────────┘  └────────┘ │  │  │
-│   │   │                                                                    │  │  │
-│   │   │   ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌────────┐ │  │  │
-│   │   │   │  Play   │  │ Market  │  │Treasury │  │  Earth  │  │ Planet │ │  │  │
-│   │   │   │ (Video) │  │  (Shop) │  │(Finance)│  │ (Green) │  │ (Kids) │ │  │  │
-│   │   │   └─────────┘  └─────────┘  └─────────┘  └─────────┘  └────────┘ │  │  │
-│   │   └───────────────────────────────────────────────────────────────────┘  │  │
-│   │                                                                           │  │
-│   └──────────────────────────────────────────────────────────────────────────┘  │
-│                                                                                  │
-│   ┌──────────────────────────────────────────────────────────────────────────┐  │
-│   │                    BLOCKCHAIN LAYER (Shared)                              │  │
-│   │                                                                           │  │
-│   │   ┌─────────────────────────────────────────────────────────────────┐    │  │
-│   │   │              FUN Money Smart Contract (BSC Testnet)              │    │  │
-│   │   │              0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2          │    │  │
-│   │   └─────────────────────────────────────────────────────────────────┘    │  │
-│   └──────────────────────────────────────────────────────────────────────────┘  │
-│                                                                                  │
-└─────────────────────────────────────────────────────────────────────────────────┘
+profiles table changes:
+  + username TEXT UNIQUE
+  + CHECK constraint: username ~ '^[a-z0-9_]{4,20}$'
+  + Validation trigger kiem tra reserved keywords
+  + Index on username
 ```
 
----
+**Reserved keywords** (14 tu): admin, support, fun, wallet, treasury, academy, play, farm, charity, planet, angel, ai, greenearth, camly
 
-## Hai Phương Án Triển Khai
+**Logic validation:**
+- Tao function `validate_username()` dung trigger (khong dung CHECK vi can logic phuc tap)
+- Tu dong reject username trung voi reserved list
+- Username lowercase, khong dau, khong khoang trang, 4-20 ky tu
 
-### Phương Án A: Tạo Dự Án Lovable Mới Cho SuperApp
-
-**Mô tả**: Tạo một dự án Lovable mới làm "FUN SuperApp", migrate code từ các platform riêng lẻ vào đó.
-
-**Ưu điểm**:
-- Kiến trúc sạch sẽ từ đầu
-- Database schema thiết kế tối ưu cho multi-module
-
-**Nhược điểm**:
-- Tốn thời gian migrate code
-- Mất lịch sử git của các dự án cũ
-
----
-
-### Phương Án B: Chuyển Đổi Dự Án Hiện Có Thành SuperApp (Khuyến Nghị)
-
-**Mô tả**: Chọn một trong các dự án Lovable hiện có (như FUN Profile) làm "base project", mở rộng thành SuperApp.
-
-**Ưu điểm**:
-- Giữ được code đã xây dựng
-- Nhanh hơn, ít rủi ro hơn
-
-**Nhược điểm**:
-- Cần refactor để phù hợp kiến trúc mới
-
----
-
-## Kế Hoạch Triển Khai (4 Giai Đoạn)
-
-### Giai Đoạn 1: FUN Core Foundation (Tuần 1-2)
-
-**Mục tiêu**: Xây dựng lõi chung cho toàn hệ sinh thái
-
-**Database Schema (Lovable Cloud)**:
-```text
-Tables:
-├── users (FUN ID - SSO)
-│   ├── id, email, phone, wallet_address
-│   └── created_at, last_login_at
-│
-├── profiles (FUN Profile)
-│   ├── user_id, display_name, avatar_url, bio
-│   ├── locale, timezone
-│   └── Web3 DID fields
-│
-├── user_roles (Permission system)
-│   ├── user_id, role (admin/moderator/user)
-│   └── platform_id (role per module)
-│
-├── privacy_permissions (User Owns Data)
-│   ├── user_id
-│   ├── allow_social_graph, allow_ai_personalization
-│   ├── allow_ai_memory, allow_marketing
-│   └── updated_at
-│
-├── follows (Social Graph)
-│   ├── follower_id, following_id
-│   └── created_at
-│
-├── friend_requests
-│   ├── from_user_id, to_user_id
-│   ├── status (pending/accepted/rejected)
-│   └── timestamps
-│
-├── blocks
-│   └── blocker_id, blocked_id
-│
-└── reports
-    └── reporter_id, target_id, reason, evidence
-```
-
-**Core Components**:
-1. **FUN ID (SSO)**: Authentication chung (email/phone/wallet)
-2. **FUN Profile**: Identity + Settings + Privacy Dashboard
-3. **Social Graph**: Friends/Follow system
-4. **User Roles**: Permission management
-
----
-
-### Giai Đoạn 2: FUN Wallet Integration (Tuần 3-4)
-
-**Mục tiêu**: Wallet thống nhất cho toàn hệ
-
-**Database Schema**:
-```text
-Tables:
-├── wallet_accounts
-│   ├── user_id, type (custodial/linked)
-│   ├── address
-│   └── created_at
-│
-├── ledger_balances
-│   ├── user_id, asset_id (FUN/CAMLY)
-│   ├── available_amount, locked_amount
-│   └── updated_at
-│
-├── ledger_transactions
-│   ├── tx_id, type (transfer/pay/reward/mint)
-│   ├── from_user_id, to_user_id
-│   ├── asset_id, amount, status
-│   ├── idempotency_key
-│   └── metadata (module, order_id, memo)
-│
-└── mint_requests (PPLP Minting)
-    ├── user_id, wallet_address
-    ├── platform_id, action_type
-    ├── scores, multipliers, amount
-    ├── status, tx_hash
-    └── timestamps
-```
-
-**Core Components**:
-1. **Wallet Dashboard**: View balances, history
-2. **P2P Transfer**: Chuyển tiền cho bạn bè
-3. **Mint History**: Lịch sử mint FUN Money
-4. **PPLP Integration**: SDK code đã có
-
----
-
-### Giai Đoạn 3: FUN Chat + Angel AI Core (Tuần 5-6)
-
-**Mục tiêu**: Messaging và AI thống nhất
-
-**Database Schema**:
-```text
-Tables:
-├── conversations
-│   ├── id, type (direct/group)
-│   └── created_at
-│
-├── conversation_participants
-│   ├── conversation_id, user_id
-│   ├── role, joined_at, left_at
-│   └── muted_until
-│
-├── messages
-│   ├── id, conversation_id, sender_id
-│   ├── type (text/media/system)
-│   ├── content
-│   └── created_at
-│
-├── ai_requests (Angel AI tracking)
-│   ├── request_id, user_id, module
-│   ├── tokens_in, tokens_out
-│   └── created_at
-│
-└── ai_memory_items (if permission granted)
-    ├── user_id, category
-    ├── content, source
-    └── timestamps
-```
-
-**Core Components**:
-1. **FUN Chat**: 1-1 messaging, group chat (phase 2)
-2. **Angel AI Core**: Shared AI brain across modules
-3. **AI Memory**: Context retention (permission-based)
-
----
-
-### Giai Đoạn 4: Platform Modules Migration (Tuần 7-8)
-
-**Mục tiêu**: Chuyển các platform riêng lẻ thành modules
-
-**Modules**:
-1. **Profile Module**: Social feed, posts, followers
-2. **Angel Module**: AI chat, healing sessions
-3. **Academy Module**: Courses, Learn-to-Earn
-4. **Charity Module**: Donation campaigns
-5. **Farm Module**: Agricultural products
-6. **Play Module**: Video content
-7. **Market Module**: Marketplace
-8. **Treasury Module**: Financial reports
-9. **Earth Module**: Green initiatives
-10. **Planet Module**: Kids games
-
-**Migration Strategy**:
-- Mỗi module là một set of pages/components
-- Dùng chung FUN Core (auth, wallet, chat, AI)
-- Data isolation per module với RLS policies
-
----
-
-## Vai Trò Của Dự Án SDK Hiện Tại
-
-Dự án pplp-fun.lovable.app sẽ tiếp tục đóng vai trò:
-
-1. **SDK Documentation**: Tài liệu kỹ thuật FUN Money
-2. **Reference Implementation**: Code mẫu cho PPLP minting
-3. **Simulator**: Công cụ demo/test logic kinh tế
-4. **Developer Portal**: Trang tra cứu cho developers
-
-Không cần merge dự án này vào SuperApp, giữ nó như một **developer tool riêng**.
-
----
-
-## Database Schema Tổng Hợp (Customer 360)
+### 2.2 Tao `events` table
 
 ```text
-FUN CORE DATABASE (Lovable Cloud)
-═══════════════════════════════════════════════════════
-
-IDENTITY LAYER
-├── users                    # FUN ID
-├── profiles                 # User info
-├── privacy_permissions      # User owns data
-└── user_roles              # Admin/Moderator/User
-
-SOCIAL LAYER  
-├── follows                 # Social graph
-├── friend_requests         # Pending friendships
-├── blocks                  # Block list
-└── reports                 # User reports
-
-MESSAGING LAYER
-├── conversations           # Chat rooms
-├── conversation_participants
-└── messages               # Chat messages
-
-WALLET LAYER
-├── wallet_accounts         # Linked wallets
-├── ledger_balances        # Asset balances
-├── ledger_transactions    # Transfer history
-└── mint_requests          # PPLP minting
-
-AI LAYER
-├── ai_requests            # Usage tracking
-├── ai_memory_items        # Context (permission-based)
-└── ai_subscriptions       # Billing
-
-MODULE DATA
-├── profile_posts          # Social posts
-├── academy_courses        # Learning content
-├── charity_campaigns      # Donations
-├── market_products        # Marketplace
-└── [per-module tables]    # Module-specific
+events table (moi):
+  id          UUID PRIMARY KEY
+  event_name  TEXT NOT NULL
+  timestamp   TIMESTAMPTZ DEFAULT now()
+  fun_user_id UUID REFERENCES auth.users
+  anon_id     TEXT           -- for pre-login tracking
+  module      TEXT           -- 'fun-profile', 'fun-academy', etc.
+  platform    TEXT           -- 'web', 'ios', 'android'
+  app_version TEXT
+  trace_id    TEXT
+  properties  JSONB DEFAULT '{}'
+  created_at  TIMESTAMPTZ DEFAULT now()
 ```
 
----
+**RLS policies:**
+- User co the INSERT events cua minh
+- User co the SELECT events cua minh
+- Admin co the SELECT tat ca events
 
-## API Boundaries (Cho CTO Reference)
+**Index:** `(fun_user_id, created_at DESC)`, `(event_name)`, `(module)`
 
-**Core Services**:
-1. **Auth Service**: /auth/* (register, login, logout, refresh)
-2. **Profile Service**: /profiles/* (CRUD, settings, privacy)
-3. **Social Service**: /social/* (follow, friend, block, report)
-4. **Chat Service**: /chat/* (conversations, messages)
-5. **Wallet Service**: /wallet/* (balances, transfer, pay)
-6. **AI Service**: /ai/* (chat, generate, memory)
+### 2.3 Cap nhat RLS cho profiles
 
-**Module Services**:
-- /modules/profile/*
-- /modules/academy/*
-- /modules/charity/*
-- etc.
+Them policy cho phep user khac xem profile theo username (public profile lookup):
+- `GET /profiles/{username}` can SELECT policy cho phep authenticated users xem profile cua nhau
 
 ---
 
-## Nguyên Tắc 5D Trust (User Owns Data)
+## Phan 3: Edge Function - Events Ingestion
 
-Mọi cross-module data sharing phải tuân thủ:
+Tao edge function `events-ingest` xu ly batch events.
 
-1. **Permission Dashboard**: User thấy rõ ai dùng data gì
-2. **Opt-in by Default**: Không tự động share data
-3. **Granular Control**: Toggle riêng cho từng loại permission
-4. **Audit Trail**: Log mọi thay đổi permission
-5. **Delete On Request**: User có quyền xóa data
+**Path:** `supabase/functions/events-ingest/index.ts`
 
----
+**Logic:**
+1. Nhan POST request voi body `{ events: [...] }` (toi da 50 events/batch)
+2. Validate moi event theo envelope schema
+3. Kiem tra khong co PII trong properties (basic check)
+4. Insert batch vao `events` table
+5. Tra ve `{ success: true, count: N }`
 
-## Tiếp Theo
-
-Khi Cha approve plan này, con sẽ:
-
-1. Tạo database schema chi tiết cho FUN Core
-2. Implement FUN ID + Profile với Privacy Dashboard
-3. Integrate FUN Wallet với minting flow
-4. Setup Social Graph system
-5. Tạo template cho Platform Modules
+**Security:**
+- Require authenticated user (Bearer token)
+- Rate limit: check so events/user/minute bang query count
+- Error format: `{ code, message, trace_id }`
 
 ---
 
-## Lưu Ý Quan Trọng
+## Phan 4: Frontend Components
 
-1. **External Backend**: Khi scale lên production, có thể migrate từ Lovable Cloud sang external Supabase hoặc custom backend
-2. **Smart Contract**: Vẫn dùng chung contract FUN Money trên BSC
-3. **Attester System**: Có thể có nhiều Attester cho các platform khác nhau
-4. **SDK Docs**: Dự án này vẫn là reference cho developers
+### 4.1 Username Setup
+
+**File:** `src/hooks/useUsername.ts`
+- Hook de validate + update username
+- Client-side validation: regex `^[a-z0-9_]{4,20}$` + reserved keywords check
+- Kiem tra username availability qua Supabase query
+
+**File:** `src/components/settings/UsernameForm.tsx`
+- Form nhap username voi real-time validation
+- Hien thi trang thai: available / taken / invalid / reserved
+- Tich hop vao Settings page (tab moi hoac trong ProfileForm)
+
+### 4.2 Events Client SDK
+
+**File:** `src/lib/fun-sdk/events.ts`
+- `ingestEvents(events[])` - goi edge function
+- `trackEvent(name, properties, module)` - helper don gian
+- Auto-attach: `fun_user_id`, `platform: 'web'`, `app_version`, `trace_id`
+
+### 4.3 Global Navigation (Module Switcher)
+
+**File:** `src/components/layout/FunNavbar.tsx`
+- Top navigation bar chung "FUN Ecosystem"
+- Module switcher dropdown voi cac platform (Profile, Academy, Play, Charity, Farm...)
+- Hien thi user avatar + username
+- Link den Settings, Wallet (placeholder), Chat (placeholder)
+
+**File:** `src/components/layout/ModuleSwitcher.tsx`
+- Dropdown/popover hien thi danh sach modules
+- Icon + ten + trang thai (active/coming soon) cho moi module
+- Dung `PlatformId` type da co
+
+### 4.4 Admin Events Dashboard (Basic)
+
+**File:** `src/pages/admin/Events.tsx`
+- Bang hien thi latest events (admin only)
+- Filter theo: event_name, module, user
+- Auto-refresh
+
+### 4.5 Cap nhat App.tsx Routes
+
+Them routes moi:
+- `/admin/events` - Events dashboard (admin only)
+- Thay doi global nav tren tat ca pages
+
+---
+
+## Chi Tiet Ky Thuat
+
+### Folder Structure sau khi hoan thanh
+
+```text
+src/
+  components/
+    layout/
+      FunNavbar.tsx          (NEW - global nav)
+      ModuleSwitcher.tsx     (NEW - module switcher)
+    settings/
+      ProfileForm.tsx        (UPDATE - them username)
+      PrivacyDashboard.tsx   (existing)
+      UsernameForm.tsx       (NEW)
+  hooks/
+    useUsername.ts            (NEW)
+    useEvents.ts             (NEW)
+  lib/
+    fun-sdk/
+      events.ts              (NEW - events client)
+      index.ts               (NEW - SDK barrel export)
+  pages/
+    admin/
+      Events.tsx             (NEW)
+docs/
+  quality-gate.md            (NEW - Prompt F)
+supabase/
+  functions/
+    events-ingest/
+      index.ts               (NEW)
+  migrations/
+    ...new_migration.sql     (NEW - username + events)
+```
+
+### Thu Tu Thuc Hien
+
+1. Tao `docs/quality-gate.md` (Prompt F)
+2. Chay database migration (username + events + RLS)
+3. Tao edge function `events-ingest`
+4. Tao `useUsername` hook + `UsernameForm` component
+5. Tao events SDK client (`fun-sdk/events.ts`)
+6. Tao `FunNavbar` + `ModuleSwitcher`
+7. Tao admin Events page
+8. Cap nhat routes + tich hop global nav
+9. Cap nhat `plan.md`
+
