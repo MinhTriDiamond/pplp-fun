@@ -77,6 +77,48 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          anon_id: string | null
+          app_version: string | null
+          created_at: string
+          event_name: string
+          fun_user_id: string | null
+          id: string
+          module: string | null
+          platform: string | null
+          properties: Json
+          timestamp: string
+          trace_id: string | null
+        }
+        Insert: {
+          anon_id?: string | null
+          app_version?: string | null
+          created_at?: string
+          event_name: string
+          fun_user_id?: string | null
+          id?: string
+          module?: string | null
+          platform?: string | null
+          properties?: Json
+          timestamp?: string
+          trace_id?: string | null
+        }
+        Update: {
+          anon_id?: string | null
+          app_version?: string | null
+          created_at?: string
+          event_name?: string
+          fun_user_id?: string | null
+          id?: string
+          module?: string | null
+          platform?: string | null
+          properties?: Json
+          timestamp?: string
+          trace_id?: string | null
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string | null
@@ -255,6 +297,7 @@ export type Database = {
           preferred_wallet: string | null
           timezone: string | null
           updated_at: string | null
+          username: string | null
           verified_at: string | null
         }
         Insert: {
@@ -270,6 +313,7 @@ export type Database = {
           preferred_wallet?: string | null
           timezone?: string | null
           updated_at?: string | null
+          username?: string | null
           verified_at?: string | null
         }
         Update: {
@@ -285,6 +329,7 @@ export type Database = {
           preferred_wallet?: string | null
           timezone?: string | null
           updated_at?: string | null
+          username?: string | null
           verified_at?: string | null
         }
         Relationships: []

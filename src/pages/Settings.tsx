@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Settings as SettingsIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Settings as SettingsIcon } from 'lucide-react';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileForm } from '@/components/settings/ProfileForm';
 import { PrivacyDashboard } from '@/components/settings/PrivacyDashboard';
+import { UsernameForm } from '@/components/settings/UsernameForm';
+import { FunNavbar } from '@/components/layout/FunNavbar';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Settings() {
@@ -30,35 +32,29 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-light">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center gap-4 px-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="shrink-0"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <SettingsIcon className="h-5 w-5 text-primary" />
-            <h1 className="text-xl font-semibold">Cài đặt</h1>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background">
+      <FunNavbar />
 
       {/* Main Content */}
       <main className="container max-w-3xl px-4 py-8">
+        <div className="flex items-center gap-2 mb-6">
+          <SettingsIcon className="h-5 w-5 text-primary" />
+          <h1 className="text-xl font-semibold">Cài đặt</h1>
+        </div>
+
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile">Hồ sơ</TabsTrigger>
+            <TabsTrigger value="identity">FUN ID</TabsTrigger>
             <TabsTrigger value="privacy">Quyền riêng tư</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
             <ProfileForm />
+          </TabsContent>
+
+          <TabsContent value="identity" className="space-y-6">
+            <UsernameForm />
           </TabsContent>
 
           <TabsContent value="privacy" className="space-y-6">
