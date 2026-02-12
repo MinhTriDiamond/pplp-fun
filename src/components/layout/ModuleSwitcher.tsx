@@ -15,15 +15,15 @@ interface ModuleItem {
 const modules: ModuleItem[] = [
   { id: 'fun-profile', name: 'Profile', icon: <Sparkles className="h-4 w-4" />, route: '/settings', enabled: true },
   { id: 'angel-ai', name: 'Angel AI', icon: <Sparkles className="h-4 w-4" />, route: '/angel', enabled: true },
-  { id: 'fun-academy', name: 'Academy', icon: <BookOpen className="h-4 w-4" />, route: '/academy', enabled: false },
-  { id: 'fun-play', name: 'Play', icon: <Gamepad2 className="h-4 w-4" />, route: '/play', enabled: false },
-  { id: 'fun-charity', name: 'Charity', icon: <Heart className="h-4 w-4" />, route: '/charity', enabled: false },
-  { id: 'fun-farm', name: 'Farm', icon: <Sprout className="h-4 w-4" />, route: '/farm', enabled: false },
-  { id: 'fun-market', name: 'Market', icon: <ShoppingBag className="h-4 w-4" />, route: '/market', enabled: false },
+  { id: 'fun-academy', name: 'Academy', icon: <BookOpen className="h-4 w-4" />, route: '/academy', enabled: true },
+  { id: 'fun-play', name: 'Play', icon: <Gamepad2 className="h-4 w-4" />, route: '/play', enabled: true },
+  { id: 'fun-charity', name: 'Charity', icon: <Heart className="h-4 w-4" />, route: '/charity', enabled: true },
+  { id: 'fun-farm', name: 'Farm', icon: <Sprout className="h-4 w-4" />, route: '/farm', enabled: true },
+  { id: 'fun-market', name: 'Market', icon: <ShoppingBag className="h-4 w-4" />, route: '/market', enabled: true },
   { id: 'fun-treasury', name: 'Treasury', icon: <Landmark className="h-4 w-4" />, route: '/treasury', enabled: true },
-  { id: 'fun-earth', name: 'Earth', icon: <Globe className="h-4 w-4" />, route: '/earth', enabled: false },
-  { id: 'fun-legal', name: 'Legal', icon: <Scale className="h-4 w-4" />, route: '/legal', enabled: false },
-  { id: 'camly-coin', name: 'CAMLY', icon: <Coins className="h-4 w-4" />, route: '/camly', enabled: false },
+  { id: 'fun-earth', name: 'Earth', icon: <Globe className="h-4 w-4" />, route: '/earth', enabled: true },
+  { id: 'fun-legal', name: 'Legal', icon: <Scale className="h-4 w-4" />, route: '/legal', enabled: true },
+  { id: 'camly-coin', name: 'CAMLY', icon: <Coins className="h-4 w-4" />, route: '/camly', enabled: true },
 ];
 
 export function ModuleSwitcher() {

@@ -42,9 +42,18 @@
 - [x] Angel AI page (`/angel`) with chat UI + memory tab
 - [x] Module Switcher: Angel AI enabled
 
+## ✅ Phase 4: Module Conversion (Prompt G)
+- [x] `module_users` table (fun_user_id ↔ platform_id mapping) with RLS
+- [x] `ContinueWithFunId` component (auth gate + auto-link)
+- [x] `useModuleLink` hook for module linking
+- [x] Module pages: Academy, Play, Farm, Charity, Market, Earth, Legal, CAMLY
+- [x] All modules enabled in ModuleSwitcher
+- [x] Routes added for all 8 modules
+
 ## 🔜 Next Steps
 
-### Phase 4: Module Conversion (Prompt G)
-- [ ] Convert each platform (Academy, Play, Farm, Charity, etc.)
-- [ ] "Continue with FUN ID" flow
-- [ ] fun_user_id mapping for existing module users
+### Phase 5: Polish & Launch
+- [ ] Integrate FunNavbar globally on remaining pages (Index, Simulator, Docs)
+- [ ] Real-time notifications system
+- [ ] Admin dashboard expansion
+- [ ] Performance optimization & PWA
