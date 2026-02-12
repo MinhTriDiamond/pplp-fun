@@ -431,6 +431,48 @@ export type Database = {
           },
         ]
       }
+      module_users: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          external_email: string | null
+          external_user_id: string | null
+          fun_user_id: string
+          id: string
+          is_active: boolean
+          linked_at: string
+          metadata: Json | null
+          platform_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          external_email?: string | null
+          external_user_id?: string | null
+          fun_user_id: string
+          id?: string
+          is_active?: boolean
+          linked_at?: string
+          metadata?: Json | null
+          platform_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          external_email?: string | null
+          external_user_id?: string | null
+          fun_user_id?: string
+          id?: string
+          is_active?: boolean
+          linked_at?: string
+          metadata?: Json | null
+          platform_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       privacy_permissions: {
         Row: {
           allow_ai_memory: boolean | null

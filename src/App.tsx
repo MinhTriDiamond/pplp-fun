@@ -14,6 +14,14 @@ import AdminEvents from "./pages/admin/Events";
 import WalletPage from "./pages/Wallet";
 import Treasury from "./pages/Treasury";
 import AngelAI from "./pages/AngelAI";
+import Academy from "./pages/modules/Academy";
+import Play from "./pages/modules/Play";
+import Farm from "./pages/modules/Farm";
+import Charity from "./pages/modules/Charity";
+import Market from "./pages/modules/Market";
+import Earth from "./pages/modules/Earth";
+import Legal from "./pages/modules/Legal";
+import CamlyCoin from "./pages/modules/CamlyCoin";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +42,14 @@ const App = () => (
           <Route path="/treasury" element={<Treasury />} />
           <Route path="/angel" element={<AngelAI />} />
           <Route path="/admin/events" element={<AdminEvents />} />
+          <Route path="/academy" element={<Academy />} />
+          <Route path="/play" element={<Play />} />
+          <Route path="/farm" element={<Farm />} />
+          <Route path="/charity" element={<Charity />} />
+          <Route path="/market" element={<Market />} />
+          <Route path="/earth" element={<Earth />} />
+          <Route path="/legal" element={<Legal />} />
+          <Route path="/camly" element={<CamlyCoin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
