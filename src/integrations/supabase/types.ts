@@ -167,6 +167,89 @@ export type Database = {
         }
         Relationships: []
       }
+      idempotency_keys: {
+        Row: {
+          created_at: string
+          key: string
+          response: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          response: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          response?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ledger_transactions: {
+        Row: {
+          amount: number
+          asset: Database["public"]["Enums"]["wallet_asset"]
+          created_at: string
+          from_user_id: string | null
+          id: string
+          idempotency_key: string | null
+          memo: string | null
+          metadata: Json | null
+          module: string | null
+          order_id: string | null
+          payment_id: string | null
+          status: Database["public"]["Enums"]["tx_status"]
+          to_user_id: string | null
+          trace_id: string
+          tx_type: Database["public"]["Enums"]["tx_type"]
+        }
+        Insert: {
+          amount: number
+          asset?: Database["public"]["Enums"]["wallet_asset"]
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          idempotency_key?: string | null
+          memo?: string | null
+          metadata?: Json | null
+          module?: string | null
+          order_id?: string | null
+          payment_id?: string | null
+          status?: Database["public"]["Enums"]["tx_status"]
+          to_user_id?: string | null
+          trace_id?: string
+          tx_type: Database["public"]["Enums"]["tx_type"]
+        }
+        Update: {
+          amount?: number
+          asset?: Database["public"]["Enums"]["wallet_asset"]
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          idempotency_key?: string | null
+          memo?: string | null
+          metadata?: Json | null
+          module?: string | null
+          order_id?: string | null
+          payment_id?: string | null
+          status?: Database["public"]["Enums"]["tx_status"]
+          to_user_id?: string | null
+          trace_id?: string
+          tx_type?: Database["public"]["Enums"]["tx_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_transactions_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mint_history: {
         Row: {
           action_type: string
@@ -403,9 +486,48 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_accounts: {
+        Row: {
+          asset: Database["public"]["Enums"]["wallet_asset"]
+          available: number
+          created_at: string
+          id: string
+          locked: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset?: Database["public"]["Enums"]["wallet_asset"]
+          available?: number
+          created_at?: string
+          id?: string
+          locked?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset?: Database["public"]["Enums"]["wallet_asset"]
+          available?: number
+          created_at?: string
+          id?: string
+          locked?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      treasury_daily_summary: {
+        Row: {
+          asset: Database["public"]["Enums"]["wallet_asset"] | null
+          day: string | null
+          total_amount: number | null
+          tx_count: number | null
+          tx_type: Database["public"]["Enums"]["tx_type"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_platform_role: {
@@ -430,6 +552,9 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "attester"
+      tx_status: "pending" | "completed" | "failed" | "reversed"
+      tx_type: "transfer" | "pay" | "reward" | "refund" | "mint" | "burn"
+      wallet_asset: "FUN" | "CAMLY"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -558,6 +683,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user", "attester"],
+      tx_status: ["pending", "completed", "failed", "reversed"],
+      tx_type: ["transfer", "pay", "reward", "refund", "mint", "burn"],
+      wallet_asset: ["FUN", "CAMLY"],
     },
   },
 } as const

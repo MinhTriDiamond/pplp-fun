@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ModuleSwitcher } from './ModuleSwitcher';
-import { Settings, LogOut, User, Menu } from 'lucide-react';
+import { Settings, LogOut, User, Menu, Wallet } from 'lucide-react';
 import funLogo from '@/assets/fun-ecosystem-logo.png';
 
 export function FunNavbar() {
@@ -38,6 +38,11 @@ export function FunNavbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link to="/wallet" className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4" /> Ví FUN
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/settings" className="flex items-center gap-2">
                     <User className="h-4 w-4" /> Hồ sơ
