@@ -11,6 +11,8 @@ import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import AdminEvents from "./pages/admin/Events";
+import WalletPage from "./pages/Wallet";
+import Treasury from "./pages/Treasury";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,8 @@ const App = () => (
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/wallet" element={<WalletPage />} />
+          <Route path="/treasury" element={<Treasury />} />
           <Route path="/admin/events" element={<AdminEvents />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
