@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import AdminEvents from "./pages/admin/Events";
 import WalletPage from "./pages/Wallet";
 import Treasury from "./pages/Treasury";
+import AngelAI from "./pages/AngelAI";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/wallet" element={<WalletPage />} />
           <Route path="/treasury" element={<Treasury />} />
+          <Route path="/angel" element={<AngelAI />} />
           <Route path="/admin/events" element={<AdminEvents />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

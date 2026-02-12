@@ -32,13 +32,17 @@
 - [x] Treasury transparency page (`/treasury`)
 - [x] Audit logging for all wallet operations
 
-## 🔜 Next Steps
+## ✅ Phase 3: Angel AI Core (Prompt E)
+- [x] `subscriptions` table (free/basic/pro/enterprise) with auto-create on signup
+- [x] `ai_conversations` + `ai_messages` tables with RLS
+- [x] `ai_memory` table (user can view/edit/delete)
+- [x] Edge function `angel-chat` (streaming, permission-gated context, rate limiting)
+- [x] `useAngelChat` hook with SSE streaming
+- [x] `useAiMemory` hook for memory CRUD
+- [x] Angel AI page (`/angel`) with chat UI + memory tab
+- [x] Module Switcher: Angel AI enabled
 
-### Phase 3: Angel AI Core (Prompt E)
-- [ ] AI chat endpoint with permission-gated context
-- [ ] AI memory (view/edit/delete)
-- [ ] Subscription/entitlement system
-- [ ] AI chat UI with module context label
+## 🔜 Next Steps
 
 ### Phase 4: Module Conversion (Prompt G)
 - [ ] Convert each platform (Academy, Play, Farm, Charity, etc.)
