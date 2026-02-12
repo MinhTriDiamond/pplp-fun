@@ -14,7 +14,7 @@ interface ModuleItem {
 
 const modules: ModuleItem[] = [
   { id: 'fun-profile', name: 'Profile', icon: <Sparkles className="h-4 w-4" />, route: '/settings', enabled: true },
-  { id: 'angel-ai', name: 'Angel AI', icon: <Sparkles className="h-4 w-4" />, route: '/angel', enabled: false },
+  { id: 'angel-ai', name: 'Angel AI', icon: <Sparkles className="h-4 w-4" />, route: '/angel', enabled: true },
   { id: 'fun-academy', name: 'Academy', icon: <BookOpen className="h-4 w-4" />, route: '/academy', enabled: false },
   { id: 'fun-play', name: 'Play', icon: <Gamepad2 className="h-4 w-4" />, route: '/play', enabled: false },
   { id: 'fun-charity', name: 'Charity', icon: <Heart className="h-4 w-4" />, route: '/charity', enabled: false },
