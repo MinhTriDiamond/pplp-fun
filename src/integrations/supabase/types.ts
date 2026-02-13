@@ -473,6 +473,98 @@ export type Database = {
         }
         Relationships: []
       }
+      multisig_mint_requests: {
+        Row: {
+          action_hash: string
+          action_type: string
+          amount_atomic: string
+          chain_id: number | null
+          contract_address: string | null
+          created_at: string
+          created_by: string
+          evidence_hash: string
+          expires_at: string
+          id: string
+          nonce: string
+          platform_id: string | null
+          recipient: string
+          scoring_metadata: Json | null
+          status: string
+          threshold: number
+          tx_hash: string | null
+        }
+        Insert: {
+          action_hash: string
+          action_type: string
+          amount_atomic: string
+          chain_id?: number | null
+          contract_address?: string | null
+          created_at?: string
+          created_by: string
+          evidence_hash: string
+          expires_at?: string
+          id?: string
+          nonce: string
+          platform_id?: string | null
+          recipient: string
+          scoring_metadata?: Json | null
+          status?: string
+          threshold?: number
+          tx_hash?: string | null
+        }
+        Update: {
+          action_hash?: string
+          action_type?: string
+          amount_atomic?: string
+          chain_id?: number | null
+          contract_address?: string | null
+          created_at?: string
+          created_by?: string
+          evidence_hash?: string
+          expires_at?: string
+          id?: string
+          nonce?: string
+          platform_id?: string | null
+          recipient?: string
+          scoring_metadata?: Json | null
+          status?: string
+          threshold?: number
+          tx_hash?: string | null
+        }
+        Relationships: []
+      }
+      multisig_mint_signatures: {
+        Row: {
+          id: string
+          request_id: string
+          signature: string
+          signed_at: string
+          signer_address: string
+        }
+        Insert: {
+          id?: string
+          request_id: string
+          signature: string
+          signed_at?: string
+          signer_address: string
+        }
+        Update: {
+          id?: string
+          request_id?: string
+          signature?: string
+          signed_at?: string
+          signer_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "multisig_mint_signatures_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "multisig_mint_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       privacy_permissions: {
         Row: {
           allow_ai_memory: boolean | null

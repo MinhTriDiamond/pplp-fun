@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Simulator from "./pages/Simulator";
+import MintRequests from "./pages/MintRequests";
 import ContractDocs from "./pages/ContractDocs";
 import Documentation from "./pages/Documentation";
 import Auth from "./pages/Auth";
@@ -34,6 +35,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/simulator" element={<Simulator />} />
+          <Route path="/mint-requests" element={<MintRequests />} />
           <Route path="/contract-docs" element={<ContractDocs />} />
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/auth" element={<Auth />} />
