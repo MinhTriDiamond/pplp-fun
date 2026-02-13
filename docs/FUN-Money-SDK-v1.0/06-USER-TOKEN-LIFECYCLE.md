@@ -147,7 +147,7 @@ export function TokenLifecyclePanel({ refreshTrigger }: TokenLifecyclePanelProps
   const [actionStatus, setActionStatus] = useState<ActionStatus>('idle');
   const [lastTxHash, setLastTxHash] = useState<string | null>(null);
 
-  const contractAddress = "0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2";
+  const contractAddress = "0x39A1b047D5d143f8874888cfa1d30Fb2AE6F0CD6";
 
   // Fetch balances
   const fetchBalances = useCallback(async () => {

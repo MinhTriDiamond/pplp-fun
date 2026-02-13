@@ -45,7 +45,7 @@ Smart Contract FUN Money chỉ là **execution layer** - nhận request từ cá
 │   │   │                                                                  │   │  │
 │   │   │   ┌──────────────────────────────────────────────────────────┐  │   │  │
 │   │   │   │           FUN Money Smart Contract v1.2.1                 │  │   │  │
-│   │   │   │           0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2      │  │   │  │
+│   │   │   │           0x39A1b047D5d143f8874888cfa1d30Fb2AE6F0CD6      │  │   │  │
 │   │   │   │                                                           │  │   │  │
 │   │   │   │   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐      │  │   │  │
 │   │   │   │   │lockWithPPLP │  │  activate() │  │   claim()   │      │  │   │  │
@@ -187,7 +187,7 @@ Smart Contract FUN Money chỉ là **execution layer** - nhận request từ cá
 
 | Entity | Address | Mô Tả |
 |--------|---------|-------|
-| **FUN Money Contract** | `0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2` | Smart Contract chính |
+| **FUN Money Contract** | `0x39A1b047D5d143f8874888cfa1d30Fb2AE6F0CD6` | Smart Contract chính |
 | **Governance Wallet** | `0x7d037462503bea2f61cDB9A482aAc72a8f4F3f0f` | Quản trị contract |
 | **Community Pool** | `0x57da82dD53E3254576F7e578016d6d274290d949` | 99% mint vào đây |
 | **Angel AI Attester** | `0x02D5578173bd0DB25462BB32A254Cd4b2E6D9a0D` | Attester mặc định |
