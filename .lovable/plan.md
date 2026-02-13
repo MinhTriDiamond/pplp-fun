@@ -1,59 +1,34 @@
 
-# FUN Ecosystem — Implementation Progress
+# Cap Nhat Dia Chi Contract FUN Money
 
-## ✅ Completed
+## Tong Quan
 
-### Phase 0: Foundation (Identity + Social Layer)
-- Auth system (email + password) with useAuth hook
-- Profiles table with RLS
-- Privacy permissions (5D Trust) with audit logging
-- Social graph (follows, friend requests, blocks, reports)
-- User roles system (admin, moderator, user, attester)
-- Mint history tracking
+Thay the dia chi contract cu `0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2` bang dia chi moi `0x39A1b047D5d143f8874888cfa1d30Fb2AE6F0CD6` tren toan bo he thong.
 
-### Phase 1: FUN CORE MVP (Prompt B + F)
-- [x] `docs/quality-gate.md` — Release checklist (Prompt F)
-- [x] `username` column on profiles (regex + reserved keywords trigger)
-- [x] `events` table with RLS + edge function `events-ingest`
-- [x] `useUsername` hook + `UsernameForm` component
-- [x] Events SDK client (`src/lib/fun-sdk/events.ts`)
-- [x] `FunNavbar` global navigation + `ModuleSwitcher` dropdown
-- [x] Admin Events Dashboard (`/admin/events`)
-- [x] Settings page: 3 tabs (Profile, FUN ID, Privacy)
+## Danh Sach File Can Cap Nhat
 
-### Phase 2: Wallet/Ledger (Prompt D)
-- [x] `wallet_accounts` table (FUN + CAMLY, available + locked)
-- [x] `ledger_transactions` table (transfer/pay/reward/refund/mint/burn)
-- [x] `idempotency_keys` table for deduplication
-- [x] Edge function `wallet-operations` (idempotent transfer, pay, refund)
-- [x] Auto-create wallet on signup (trigger)
-- [x] `treasury_daily_summary` view (SECURITY INVOKER)
-- [x] `useWalletLedger` hook + Wallet page (`/wallet`)
-- [x] Treasury transparency page (`/treasury`)
-- [x] Audit logging for all wallet operations
+Tong cong **8 file**, chia thanh 2 nhom:
 
-## ✅ Phase 3: Angel AI Core (Prompt E)
-- [x] `subscriptions` table (free/basic/pro/enterprise) with auto-create on signup
-- [x] `ai_conversations` + `ai_messages` tables with RLS
-- [x] `ai_memory` table (user can view/edit/delete)
-- [x] Edge function `angel-chat` (streaming, permission-gated context, rate limiting)
-- [x] `useAngelChat` hook with SSE streaming
-- [x] `useAiMemory` hook for memory CRUD
-- [x] Angel AI page (`/angel`) with chat UI + memory tab
-- [x] Module Switcher: Angel AI enabled
+### Nhom 1: Source Code (anh huong truc tiep den ung dung)
 
-## ✅ Phase 4: Module Conversion (Prompt G)
-- [x] `module_users` table (fun_user_id ↔ platform_id mapping) with RLS
-- [x] `ContinueWithFunId` component (auth gate + auto-link)
-- [x] `useModuleLink` hook for module linking
-- [x] Module pages: Academy, Play, Farm, Charity, Market, Earth, Legal, CAMLY
-- [x] All modules enabled in ModuleSwitcher
-- [x] Routes added for all 8 modules
+| File | So cho can thay |
+|------|-----------------|
+| `src/lib/web3.ts` | 1 (DEFAULT_FUN_MONEY_ADDRESS) |
+| `src/data/docs-data.ts` | 2 (CONTRACT_INFO.address + bscscanUrl) |
+| `src/data/contract-functions.ts` | 1 (CONTRACT_ADDRESS) |
 
-## 🔜 Next Steps
+### Nhom 2: SDK Documentation (tai lieu tham chieu)
 
-### Phase 5: Polish & Launch
-- [ ] Integrate FunNavbar globally on remaining pages (Index, Simulator, Docs)
-- [ ] Real-time notifications system
-- [ ] Admin dashboard expansion
-- [ ] Performance optimization & PWA
+| File | So cho can thay |
+|------|-----------------|
+| `docs/FUN-Money-SDK-v1.0/01-ARCHITECTURE.md` | 2 |
+| `docs/FUN-Money-SDK-v1.0/04-CONTRACT-INTEGRATION.md` | 4 |
+| `docs/FUN-Money-SDK-v1.0/06-USER-TOKEN-LIFECYCLE.md` | 1 |
+| `docs/FUN-Money-SDK-v1.0/07-ERROR-HANDLING.md` | 1 |
+| `docs/FUN-Money-SDK-v1.0/code/lib/web3-config.ts` | 1 |
+
+## Cach Thuc Hien
+
+Thay the tat ca `0x1aa8DE8B1E4465C6d729E8564893f8EF823a5ff2` thanh `0x39A1b047D5d143f8874888cfa1d30Fb2AE6F0CD6` trong 8 file tren. Khong thay doi logic, chi thay dia chi.
+
+**Luu y:** Nguoi dung da luu dia chi cu trong localStorage (key `fun_money_contract_address`) se tu dong duoc ghi de khi su dung Contract Settings UI. Default address se la dia chi moi ngay lap tuc.
