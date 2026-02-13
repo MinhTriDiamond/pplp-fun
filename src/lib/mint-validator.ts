@@ -164,29 +164,26 @@ export async function validateBeforeMint(
 
     // 4. Check threshold (v1.2.1 uses attesterThreshold)
     let thresholdNum = 1;
-    let thresholdOk = true;
     try {
       const threshold = await contract.attesterThreshold();
       thresholdNum = Number(threshold);
-      thresholdOk = thresholdNum === 1;
+      const isMultiSig = thresholdNum > 1;
       details.push({
         key: 'threshold',
         label: 'Signature Threshold',
         labelVi: 'Ngưỡng chữ ký',
-        passed: thresholdOk,
+        passed: true, // Always pass - multi-sig is handled by MultiSigMintFlow
         value: `${thresholdNum} signature(s)`,
-        hint: !thresholdOk ? `Cần ${thresholdNum} chữ ký, hiện chỉ có 1` : undefined,
-        status: thresholdOk ? 'success' : 'error'
+        hint: isMultiSig ? `Cần ${thresholdNum} chữ ký — sử dụng Multi-Sig Mint Flow` : undefined,
+        status: isMultiSig ? 'warning' : 'success'
       });
-      if (!thresholdOk) {
-        issues.push(`❌ Contract yêu cầu ${thresholdNum} chữ ký (multi-sig)`);
-      }
+      // No longer blocking mint for multi-sig - handled by separate flow
     } catch (err) {
       details.push({
         key: 'threshold',
         label: 'Signature Threshold',
         labelVi: 'Ngưỡng chữ ký',
-        passed: false,
+        passed: true,
         value: 'Check failed',
         hint: 'Không thể đọc attesterThreshold()',
         status: 'warning'

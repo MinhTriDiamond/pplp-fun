@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Dialog, 
@@ -14,7 +14,8 @@ import {
   XCircle, 
   ExternalLink,
   Wallet,
-  Sparkles
+  Sparkles,
+  Shield
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,6 +36,7 @@ import type { ScoringResult } from '@/types/pplp.types';
 import { useToast } from '@/hooks/use-toast';
 import { DebugPanel } from './DebugPanel';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { MultiSigMintFlow } from './MultiSigMintFlow';
 import { 
   createInitialDebugBundle, 
   decodeRevertError,
@@ -83,16 +85,34 @@ export function MintButton({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showMultiSig, setShowMultiSig] = useState(false);
+  const [threshold, setThreshold] = useState(1);
   const [debugBundle, setDebugBundle] = useState<MintDebugBundle | null>(null);
 
   // Use recipient if provided, otherwise use connected wallet
   const mintRecipient = recipient && recipient.length === 42 ? recipient : address;
   const canMint = result?.decision === 'AUTHORIZE' && actionType && isConnected && isCorrectChain && mintRecipient;
 
+  // Read threshold from contract on mount
+  useEffect(() => {
+    if (!provider || !isConnected) return;
+    const contractAddress = getFunMoneyAddress();
+    const contract = new Contract(contractAddress, FUN_MONEY_ABI, provider);
+    contract.attesterThreshold().then((t: bigint) => {
+      setThreshold(Number(t));
+    }).catch(() => {});
+  }, [provider, isConnected]);
+
   const handleMint = async () => {
     // Check authentication first
     if (!isAuthenticated) {
       setShowAuthModal(true);
+      return;
+    }
+
+    // Route to multi-sig flow if threshold > 1
+    if (threshold > 1) {
+      setShowMultiSig(true);
       return;
     }
 
@@ -367,16 +387,25 @@ export function MintButton({
 
   return (
     <>
-      <Button
-        onClick={handleMint}
-        disabled={!canMint || disabled || status !== 'idle'}
-        className="w-full gap-2 bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 hover:from-amber-500 hover:via-yellow-600 hover:to-orange-600 text-white font-bold shadow-lg disabled:opacity-50"
-      >
-        <Coins className="h-5 w-5" />
-        MINT FUN MONEY
-        <Sparkles className="h-5 w-5" />
-      </Button>
+      <div className="space-y-2">
+        <Button
+          onClick={handleMint}
+          disabled={!canMint || disabled || status !== 'idle'}
+          className="w-full gap-2 bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 hover:from-amber-500 hover:via-yellow-600 hover:to-orange-600 text-white font-bold shadow-lg disabled:opacity-50"
+        >
+          <Coins className="h-5 w-5" />
+          MINT FUN MONEY
+          <Sparkles className="h-5 w-5" />
+        </Button>
+        {threshold > 1 && (
+          <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
+            <Shield className="h-3 w-3" />
+            Multi-Sig: {threshold} chữ ký Attester
+          </p>
+        )}
+      </div>
 
+      {/* Single-sig dialog */}
       <Dialog open={showDialog} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -467,13 +496,25 @@ export function MintButton({
         </DialogContent>
       </Dialog>
 
+      {/* Multi-Sig Flow */}
+      <MultiSigMintFlow
+        open={showMultiSig}
+        onOpenChange={setShowMultiSig}
+        result={result}
+        actionType={actionType}
+        platformId={platformId}
+        recipient={recipient}
+        lightScore={lightScore}
+        unityScore={unityScore}
+        threshold={threshold}
+      />
+
       {/* Auth Modal for login requirement */}
       <AuthModal 
         open={showAuthModal}
         onOpenChange={setShowAuthModal}
         onSuccess={() => {
           setShowAuthModal(false);
-          // Retry mint after successful login
           handleMint();
         }}
       />
