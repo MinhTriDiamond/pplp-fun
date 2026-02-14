@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Sparkles, ListChecks, Pen } from 'lucide-react';
+import { ArrowLeft, Sparkles, ListChecks, Pen, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WalletConnect } from '@/components/wallet/WalletConnect';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { SimulatorTab } from '@/components/simulator/SimulatorTab';
 import { MintRequestsTab } from '@/components/simulator/MintRequestsTab';
+import { ClaimTab } from '@/components/simulator/ClaimTab';
 import { 
   scoreAction, 
   calculateLightScore, 
@@ -84,15 +85,18 @@ export default function Simulator() {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="simulator" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-lg grid-cols-4">
             <TabsTrigger value="simulator" className="gap-1.5">
               <Sparkles className="h-3.5 w-3.5" /> Simulator
             </TabsTrigger>
             <TabsTrigger value="requests" className="gap-1.5">
-              <ListChecks className="h-3.5 w-3.5" /> Mint Requests
+              <ListChecks className="h-3.5 w-3.5" /> Requests
             </TabsTrigger>
             <TabsTrigger value="sign" className="gap-1.5">
-              <Pen className="h-3.5 w-3.5" /> Ký / Sign
+              <Pen className="h-3.5 w-3.5" /> Sign
+            </TabsTrigger>
+            <TabsTrigger value="claim" className="gap-1.5">
+              <Gift className="h-3.5 w-3.5" /> Claim
             </TabsTrigger>
           </TabsList>
 
@@ -118,6 +122,10 @@ export default function Simulator() {
 
           <TabsContent value="sign">
             <MintRequestsTab />
+          </TabsContent>
+
+          <TabsContent value="claim">
+            <ClaimTab />
           </TabsContent>
         </Tabs>
       </main>
