@@ -1,80 +1,110 @@
 
 
-# Nang cap Multi-Sig: GOV-Community (Will + Wisdom + Love)
+# Danh gia Ke hoach Hop nhat 3 Platform FUN
 
-## Mo ta
+## Tong ket: He thong da san sang 85%
 
-Chuyen tu mo hinh "3 chu ky bat ky" sang mo hinh "1 chu ky tu moi nhom trong 3 nhom": **Will** (Y chi), **Wisdom** (Tri tue), **Love** (Yeu thuong). Moi nhom co 3 thanh vien co dinh. Contract van giu threshold = 3, nhung ung dung se dam bao 3 chu ky den tu 3 nhom khac nhau.
+Ke hoach chien luoc rat xuat sac ve tam nhin. Tuy nhien, phan lon cac giai doan ky thuat **da duoc hoan thanh** trong codebase hien tai. Du an nay **da la mot SuperApp** voi 1 codebase, 1 database, 1 auth system. 3 platform (Profile, Play, Angel AI) da la cac route noi bo.
 
-## Cau truc 3 nhom
+## Bang danh gia tung giai doan
+
+| Giai doan | Trang thai | Ghi chu |
+|-----------|-----------|---------|
+| GD0 - Kien truc | DA XONG | fun.rich da la SuperApp Shell, 1 Supabase project trung tam |
+| GD1 - Monorepo | KHONG AP DUNG | Lovable la single-app, nhung cau truc tuong duong da co (pages/modules, lib/fun-sdk, components/ui, types) |
+| GD2 - FUN ID SSO | DA XONG | useAuth() dung chung, ContinueWithFunId gate, module_users table, logout dong bo |
+| GD3 - UX Unify | CAN LAM | Day la phan chinh can thuc hien - bottom nav mobile, chuyen trang muot |
+| GD4 - Event Unify | 80% XONG | SDK va endpoint da co, can tich hop trackEvent vao cac module |
+| GD5 - Data Unify | DA XONG | profiles, privacy_permissions, wallet_accounts deu gắn fun_user_id |
+| GD6 - Module Mount | DA XONG | Moi module la React component, router mapping da co |
+
+## Nhung viec THUC SU can lam
+
+### 1. Mobile Bottom Navigation (Uu tien cao nhat)
+
+Thay the ModuleSwitcher (popover, khong mobile-friendly) bang bottom navigation bar co dinh:
 
 ```text
-WILL (Y chi, Ky thuat)          WISDOM (Tri tue, Tam nhin)         LOVE (Yeu thuong, Nhan ai)
-+---------------------------+   +---------------------------+   +---------------------------+
-| Minh Tri   0xe32d...94f1 |   | Be Giau  0xCa31...a301  |   | Thanh Tien 0x0e1b...d385 |
-| Anh Nguyet 0xfd0D...a557 |   | Be Ngoc  0x699C...1E09  |   | Be Kim     0x38db...c242 |
-| Thu Trang  0x02D5...a0D  |   | Ai Van   0x5102...a402  |   | Be Ha      0x9ec8...7CCC |
-+---------------------------+   +---------------------------+   +---------------------------+
-
-Ky hop le: 1 tu WILL + 1 tu WISDOM + 1 tu LOVE = 3 chu ky
++------------------------------------------+
+|           FUN SuperApp Content            |
+|                                           |
++------------------------------------------+
+| [Home] [Play] [Angel] [Wallet] [Profile] |
++------------------------------------------+
 ```
 
-## Chi tiet ky thuat
+**File can sua:**
+- `src/components/layout/BottomNav.tsx` (moi) - Bottom tab bar voi 5 icon
+- `src/components/layout/FunNavbar.tsx` - An ModuleSwitcher tren mobile
+- `src/pages/Simulator.tsx`, `src/pages/AngelAI.tsx`, etc. - Tich hop BottomNav
 
-### 1. Tao file cau hinh `src/config/gov-groups.ts`
+### 2. Tich hop Event Tracking vao cac module
 
-Dinh nghia 3 nhom voi dia chi vi thanh vien:
+Them `trackEvent()` tu dong vao cac module:
 
-- Kieu `GovGroup` gom: id, name, nameVi, icon, members (ten + dia chi)
-- Kieu `GovMember` gom: name, address, group
-- Ham `getGroupForAddress(address)` -> tra ve nhom cua vi
-- Ham `validateGroupCoverage(signerAddresses[])` -> kiem tra du 3 nhom chua
-- Hang so `GOV_GROUPS` va `ALL_GOV_MEMBERS`
+| Event | Module | Thoi diem |
+|-------|--------|-----------|
+| `module_opened` | Tat ca | Khi user vao module |
+| `ai_request_sent` | Angel AI | Khi gui tin nhan |
+| `ai_response_returned` | Angel AI | Khi nhan tra loi |
+| `game_viewed` | Play | Khi xem game card |
 
-### 2. Cap nhat `MultiSigMintFlow.tsx`
+**File can sua:**
+- `src/pages/modules/Play.tsx` - Them trackEvent('module_opened')
+- `src/pages/AngelAI.tsx` - Them trackEvent cho chat events
+- `src/components/auth/ContinueWithFunId.tsx` - Them trackEvent('module_activated') khi link
 
-**Thay doi giao dien:**
-- Tab "Tao": giu nguyen, them hien thi "Yeu cau: 1 WILL + 1 WISDOM + 1 LOVE"
-- Tab "Ky": thay the danh sach Slot 1/2/3 bang 3 khoi nhom:
-  - Khoi WILL: hien thi 3 thanh vien, danh dau ai da ky (xanh), ai chua (xam)
-  - Khoi WISDOM: tuong tu
-  - Khoi LOVE: tuong tu
-- Tab "Gui": kiem tra `validateGroupCoverage` truoc khi cho gui
+### 3. Design System nhat quan (tuy chon)
 
-**Thay doi logic:**
-- Truoc khi ky: kiem tra vi thuoc nhom nao, kiem tra nhom do da co nguoi ky chua
-- Neu nhom da co chu ky -> bao loi "Nhom [ten nhom] da co nguoi ky roi"
-- `isReady` = validateGroupCoverage(cac dia chi da ky) thay vi chi dem so luong
+Hien tai cac trang da dung chung Tailwind + shadcn/ui. Co the them:
+- Mau sac nhat quan cho tung module (Play = xanh la, Angel = tim, Profile = cam)
+- Transition animation khi chuyen tab
 
-### 3. Cap nhat `MintRequestsTab.tsx`
+## Diem BAT BUOC da dat duoc (Checklist)
 
-- Import gov-groups config
-- Hien thi chu ky theo nhom thay vi Slot 1/2/3
-- Kiem tra nhom truoc khi cho ky
-- Validate group coverage truoc khi cho gui giao dich
+- [x] Khong module nao co auth rieng - tat ca dung useAuth()
+- [x] Khong iframe - tat ca la React routes
+- [x] Khong DB identity thu hai - chi co auth.users + profiles
+- [x] Moi user action gan fun_user_id - qua Supabase RLS
+- [x] Event tracking san sang - SDK + Edge Function da co
+- [x] Login 1 lan hoat dong - session persist qua localStorage
+- [x] Logout dong bo - chi co 1 session
+- [x] Profile hien thi nhat quan - FunNavbar dung chung
 
-### 4. Cap nhat `MintRequests.tsx` (trang doc lap)
+## Dieu chinh ve Giai doan 1 (Monorepo)
 
-- Tuong tu MintRequestsTab: hien thi theo nhom, validate group coverage
+Lovable khong ho tro cau truc monorepo (apps/packages/). Tuy nhien, codebase hien tai da to chuc tuong duong:
 
-### 5. Cap nhat `useMintRequests.ts`
+```text
+Ke hoach Monorepo          Tuong duong trong codebase hien tai
+-----------------          ------------------------------------
+apps/fun-shell/         -> src/pages/Index.tsx + layout components
+apps/fun-play/          -> src/pages/modules/Play.tsx
+apps/angel-ai/          -> src/pages/AngelAI.tsx
+packages/ui/            -> src/components/ui/ (shadcn)
+packages/sdk/           -> src/lib/fun-sdk/
+packages/types/         -> src/types/
+```
 
-- Trong `addSignature`: them kiem tra group coverage (khong cho 2 nguoi cung nhom ky)
+Khi can chuyen sang monorepo thuc su (vi du khi roi Lovable sang self-hosted), chi can tach cac thu muc nay ra packages - code da san sang.
 
-## Luu y
+## Ke hoach thuc thi de xuat
 
-- Smart Contract khong biet ve nhom - chi kiem tra du 3 chu ky hop le tu Attester
-- Tat ca validation nhom thuc hien o tang ung dung (frontend + database hook)
-- Neu sau nay them/bot thanh vien, chi can sua file `gov-groups.ts`
-- Cac dia chi phai trung voi dia chi da dang ky Attester tren contract
+Chi can 2 buoc chinh:
 
-## Cac file can tao/sua
+**Buoc 1: Mobile Bottom Nav**
+- Tao BottomNav component voi 5 tab (Home, Play, Angel, Wallet, Profile)
+- Tich hop vao tat ca cac trang qua layout wrapper
+- An ModuleSwitcher tren mobile, giu tren desktop
 
-| File | Thay doi |
-|------|----------|
-| `src/config/gov-groups.ts` | **Moi** - Dinh nghia 3 nhom va cac ham validate |
-| `src/components/simulator/MultiSigMintFlow.tsx` | Sua - Hien thi theo nhom, validate nhom |
-| `src/components/simulator/MintRequestsTab.tsx` | Sua - Hien thi theo nhom, validate nhom |
-| `src/pages/MintRequests.tsx` | Sua - Hien thi theo nhom, validate nhom |
-| `src/hooks/useMintRequests.ts` | Sua - Them group validation khi addSignature |
+**Buoc 2: Event Tracking Integration**
+- Them trackEvent() vao moi module khi mount
+- Them trackEvent() vao cac hanh dong quan trong (chat, game, mint)
+- Dam bao khong gui PII trong properties
+
+## Ket luan
+
+Ke hoach chien luoc cua Cha rat chinh xac ve tam nhin. Ve mat ky thuat, he thong da san sang hon 85%. Phan con lai tap trung vao **trai nghiem nguoi dung (UX)** - dac biet la mobile bottom navigation - thay vi kien truc backend (da hoan thanh).
+
+He thong hien tai da la nen mong vung chac cho Creator Economy va Dual Token System.
 
