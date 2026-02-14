@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { useAuth } from '@/hooks/useAuth';
+import { GOV_GROUPS, getGroupForAddress, getMemberName, validateGroupCoverage, getSignedGroups } from '@/config/gov-groups';
 import {
   useMintRequests,
   useRealtimeSignatures,
@@ -94,7 +95,8 @@ export function MultiSigMintFlow({
   // Realtime signatures
   const realtimeSigs = useRealtimeSignatures(currentRequest?.id || null);
   const sigCount = realtimeSigs.length;
-  const isReady = currentRequest ? sigCount >= currentRequest.threshold : false;
+  const signedGroups = getSignedGroups(realtimeSigs.map((s) => s.signer_address));
+  const isReady = validateGroupCoverage(realtimeSigs.map((s) => s.signer_address));
 
   // Load pending requests on tab switch
   useEffect(() => {
@@ -226,6 +228,16 @@ export function MultiSigMintFlow({
         throw new Error('Ví này đã ký request này rồi');
       }
 
+      // GOV-Community: check group hasn't signed yet
+      const myGroup = getGroupForAddress(address);
+      if (!myGroup) {
+        throw new Error('Ví của bạn không thuộc nhóm GOV nào (Will / Wisdom / Love)');
+      }
+      const existingGroups = getSignedGroups(existingSigs.map((s) => s.signer_address));
+      if (existingGroups.has(myGroup.id)) {
+        throw new Error(`Nhóm ${myGroup.name} (${myGroup.nameVi}) đã có người ký rồi`);
+      }
+
       // Sign with same data
       const pplpData: PPLPData = {
         user: currentRequest.recipient,
@@ -303,10 +315,10 @@ export function MultiSigMintFlow({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Multi-Sig Mint ({threshold} chữ ký)
+            Multi-Sig GOV-Community
           </DialogTitle>
           <DialogDescription>
-            Thu thập {threshold} chữ ký Attester từ các thiết bị khác nhau
+            Yêu cầu: 1 WILL + 1 WISDOM + 1 LOVE = 3 chữ ký từ 3 nhóm
           </DialogDescription>
         </DialogHeader>
 
@@ -567,7 +579,10 @@ function SigningPanel({
   const alreadySigned = signatures.some(
     (s) => s.signer_address.toLowerCase() === address?.toLowerCase()
   );
-  const isFull = signatures.length >= request.threshold;
+  const signedGroupIds = getSignedGroups(signatures.map((s) => s.signer_address));
+  const allGroupsCovered = validateGroupCoverage(signatures.map((s) => s.signer_address));
+  const myGroup = address ? getGroupForAddress(address) : undefined;
+  const myGroupAlreadySigned = myGroup ? signedGroupIds.has(myGroup.id) : false;
 
   return (
     <div className="space-y-4">
@@ -593,58 +608,77 @@ function SigningPanel({
         </CardContent>
       </Card>
 
-      {/* Signature slots */}
-      <div className="space-y-2">
+      {/* GOV-Community Signature Groups */}
+      <div className="space-y-3">
         <div className="flex justify-between text-sm">
-          <span>Chữ ký</span>
-          <span className="font-bold">
-            {signatures.length}/{request.threshold}
-          </span>
+          <span>Chữ ký GOV-Community</span>
+          <span className="font-bold">{signedGroupIds.size}/3 nhóm</span>
         </div>
-        <Progress value={(signatures.length / request.threshold) * 100} />
+        <Progress value={(signedGroupIds.size / 3) * 100} />
 
-        <div className="space-y-1">
-          {signatures.map((sig, i) => (
-            <div key={sig.signer_address} className="flex items-center gap-2 text-xs p-2 bg-green-50 rounded border border-green-200">
-              <CheckCircle2 className="h-3 w-3 text-green-600" />
-              <span className="font-mono">{sig.signer_address.slice(0, 10)}...</span>
-              <span className="text-muted-foreground ml-auto">
-                Slot {i + 1}
-              </span>
+        {GOV_GROUPS.map((group) => {
+          const GroupIcon = group.icon;
+          const groupSigner = signatures.find((s) => {
+            const g = getGroupForAddress(s.signer_address);
+            return g?.id === group.id;
+          });
+          const isSigned = !!groupSigner;
+
+          return (
+            <div key={group.id} className={`rounded-lg border p-3 space-y-2 ${isSigned ? 'border-green-300 bg-green-50' : 'border-border'}`}>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <GroupIcon className={`h-4 w-4 ${isSigned ? 'text-green-600' : 'text-muted-foreground'}`} />
+                <span>{group.name}</span>
+                <span className="text-muted-foreground">({group.nameVi})</span>
+                {isSigned && <CheckCircle2 className="h-4 w-4 text-green-600 ml-auto" />}
+              </div>
+              <div className="grid gap-1">
+                {group.members.map((member) => {
+                  const memberSigned = groupSigner && groupSigner.signer_address.toLowerCase() === member.address.toLowerCase();
+                  return (
+                    <div key={member.address} className={`flex items-center gap-2 text-xs px-2 py-1 rounded ${memberSigned ? 'bg-green-100 text-green-800 font-medium' : 'text-muted-foreground'}`}>
+                      {memberSigned ? (
+                        <CheckCircle2 className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <div className="h-3 w-3 rounded-full border border-muted-foreground/30" />
+                      )}
+                      <span>{member.name}</span>
+                      <span className="font-mono ml-auto">{member.address.slice(0, 8)}...</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          ))}
-          {Array.from({ length: request.threshold - signatures.length }).map((_, i) => (
-            <div key={`empty-${i}`} className="flex items-center gap-2 text-xs p-2 bg-muted/50 rounded border border-dashed">
-              <div className="h-3 w-3 rounded-full border border-muted-foreground/30" />
-              <span className="text-muted-foreground">Chưa ký</span>
-              <span className="text-muted-foreground ml-auto">
-                Slot {signatures.length + i + 1}
-              </span>
-            </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      {!isFull && !alreadySigned && (
+      {!allGroupsCovered && !alreadySigned && !myGroupAlreadySigned && (
         <Button onClick={onSign} disabled={signing || !address} className="w-full gap-2">
           {signing ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Pen className="h-4 w-4" />
           )}
-          Ký với ví hiện tại
+          Ký với ví hiện tại {myGroup ? `(${myGroup.name})` : ''}
         </Button>
       )}
 
-      {alreadySigned && !isFull && (
+      {myGroupAlreadySigned && !alreadySigned && (
         <p className="text-center text-sm text-muted-foreground">
-          ✅ Bạn đã ký. Đợi các Attester khác ký tiếp...
+          ⚠️ Nhóm {myGroup?.name} ({myGroup?.nameVi}) đã có người ký. Đợi nhóm khác...
         </p>
       )}
 
-      {isFull && (
+      {alreadySigned && !allGroupsCovered && (
+        <p className="text-center text-sm text-muted-foreground">
+          ✅ Bạn đã ký. Đợi các nhóm khác ký tiếp...
+        </p>
+      )}
+
+      {allGroupsCovered && (
         <p className="text-center text-sm text-green-600 font-medium">
-          ✅ Đủ chữ ký! Chuyển sang tab "Gửi" để mint
+          ✅ Đủ 3 nhóm! Chuyển sang tab "Gửi" để mint
         </p>
       )}
     </div>
