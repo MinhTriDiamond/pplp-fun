@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getGroupForAddress, getSignedGroups, validateGroupCoverage } from '@/config/gov-groups';
 
 export interface MintRequest {
   id: string;
@@ -128,10 +129,12 @@ export function useMintRequests() {
         return false;
       }
 
-      // Check if we have enough signatures to mark as ready
+      // Check group coverage for GOV-Community model
       const sigs = await getSignatures(requestId);
+      const allSigners = sigs.map((s) => s.signer_address);
       const request = await getRequest(requestId);
-      if (request && sigs.length >= request.threshold) {
+
+      if (request && validateGroupCoverage(allSigners)) {
         await supabase
           .from('multisig_mint_requests')
           .update({ status: 'ready' })
