@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ModuleSwitcher } from './ModuleSwitcher';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Settings, LogOut, User, Menu, Wallet } from 'lucide-react';
 import funLogo from '@/assets/fun-ecosystem-logo.png';
 
 export function FunNavbar() {
   const { user, isAuthenticated, signOut } = useAuth();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -20,7 +22,7 @@ export function FunNavbar() {
             <img src={funLogo} alt="FUN" className="h-7 w-7 rounded" />
             <span className="hidden sm:inline">FUN Ecosystem</span>
           </Link>
-          <ModuleSwitcher />
+          {!isMobile && <ModuleSwitcher />}
         </div>
 
         {/* Right: Auth */}

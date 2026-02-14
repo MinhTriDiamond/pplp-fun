@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { FunNavbar } from '@/components/layout/FunNavbar';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { useAngelChat } from '@/hooks/useAngelChat';
+import { trackEvent } from '@/lib/fun-sdk/events';
 import { useAiMemory } from '@/hooks/useAiMemory';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -24,6 +26,7 @@ export default function AngelAI() {
   useEffect(() => {
     loadConversations();
     fetchMemories();
+    trackEvent('module_opened', { module_name: 'angel-ai' }, 'angel-ai').catch(() => {});
   }, [loadConversations, fetchMemories]);
 
   useEffect(() => {
@@ -37,12 +40,13 @@ export default function AngelAI() {
 
   const handleSend = () => {
     if (!input.trim() || isLoading) return;
+    trackEvent('ai_request_sent', { message_length: input.length }, 'angel-ai').catch(() => {});
     sendMessage(input);
     setInput('');
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col pb-14 md:pb-0">
       <FunNavbar />
       <div className="flex-1 container max-w-6xl mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-6">
@@ -209,6 +213,7 @@ export default function AngelAI() {
           </TabsContent>
         </Tabs>
       </div>
+      <BottomNav />
     </div>
   );
 }

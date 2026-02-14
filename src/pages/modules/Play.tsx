@@ -1,12 +1,19 @@
+import { useEffect } from 'react';
 import { FunNavbar } from '@/components/layout/FunNavbar';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { ContinueWithFunId } from '@/components/auth/ContinueWithFunId';
 import { Gamepad2, Swords, Puzzle, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { trackEvent } from '@/lib/fun-sdk/events';
 
 export default function Play() {
+  useEffect(() => {
+    trackEvent('module_opened', { module_name: 'fun-play' }, 'fun-play').catch(() => {});
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-14 md:pb-0">
       <FunNavbar />
       <ContinueWithFunId
         platformId="fun-play"
@@ -40,6 +47,7 @@ export default function Play() {
           </div>
         </main>
       </ContinueWithFunId>
+      <BottomNav />
     </div>
   );
 }
