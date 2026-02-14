@@ -1,51 +1,80 @@
 
 
-# Tich hop Mint Requests & Sign vao Simulator
+# Nang cap Multi-Sig: GOV-Community (Will + Wisdom + Love)
 
-## Van de 1: /mint-requests khong hoat dong tren ban publish
+## Mo ta
 
-Route `/mint-requests` da ton tai trong code va hoat dong binh thuong tren ban preview. Ban publish (`pplp-fun.lovable.app`) chua duoc cap nhat. **Con chi can bam "Publish"** de deploy code moi len ban live.
+Chuyen tu mo hinh "3 chu ky bat ky" sang mo hinh "1 chu ky tu moi nhom trong 3 nhom": **Will** (Y chi), **Wisdom** (Tri tue), **Love** (Yeu thuong). Moi nhom co 3 thanh vien co dinh. Contract van giu threshold = 3, nhung ung dung se dam bao 3 chu ky den tu 3 nhom khac nhau.
 
-## Van de 2: Them tab Mint Requests va Sign vao /simulator
-
-Hien tai trang `/simulator` la layout 3 cot (inputs ben trai, results ben phai) khong co tabs. Se them he thong tab o cap trang de nguoi dung co the chuyen giua 3 che do:
-
-### Cau truc tab moi trong Simulator
-
-| Tab | Noi dung | Muc dich |
-|-----|----------|----------|
-| Simulator | Giao dien hien tai (PillarSliders, UnitySignals, UserProfile, ScoringResults, MintPreview, MintButton) | Attester 1 cau hinh PPLP va tao Mint Request |
-| Mint Requests | Danh sach pending requests + tim kiem theo ID | Xem tat ca request dang cho |
-| Sign / Ky | Chi tiet request + ky EIP-712 + gui giao dich | Attester 2/3 ky va gui giao dich |
-
-### Chi tiet ky thuat
-
-**File can sua: `src/pages/Simulator.tsx`**
-
-- Them `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` tu `@/components/ui/tabs`
-- Tab "Simulator": giu nguyen toan bo layout hien tai (grid 3 cot, cards, scoring)
-- Tab "Mint Requests": nhung noi dung tuong tu trang `/mint-requests` (danh sach pending, tim kiem)
-- Tab "Sign": khi chon 1 request -> hien thi chi tiet, tien trinh chu ky, nut ky/gui
-
-Logic tu trang `MintRequests.tsx` va hook `useMintRequests` se duoc tai su dung. Khong tao component moi, chi nhung truc tiep vao Simulator voi cac tab.
-
-**Khong thay doi gi khac** - route `/mint-requests` van giu nguyen de Attester co the truy cap doc lap.
-
-### Giao dien
-
-Tab bar se dat ngay duoi header, tren khu vuc main content:
+## Cau truc 3 nhom
 
 ```text
-[< Trang chu]  PPLP Simulator                [UserMenu] [WalletConnect]
------------------------------------------------------------------------
-  [ Simulator ]  [ Mint Requests ]  [ Sign ]
------------------------------------------------------------------------
-  (Noi dung thay doi theo tab)
+WILL (Y chi, Ky thuat)          WISDOM (Tri tue, Tam nhin)         LOVE (Yeu thuong, Nhan ai)
++---------------------------+   +---------------------------+   +---------------------------+
+| Minh Tri   0xe32d...94f1 |   | Be Giau  0xCa31...a301  |   | Thanh Tien 0x0e1b...d385 |
+| Anh Nguyet 0xfd0D...a557 |   | Be Ngoc  0x699C...1E09  |   | Be Kim     0x38db...c242 |
+| Thu Trang  0x02D5...a0D  |   | Ai Van   0x5102...a402  |   | Be Ha      0x9ec8...7CCC |
++---------------------------+   +---------------------------+   +---------------------------+
+
+Ky hop le: 1 tu WILL + 1 tu WISDOM + 1 tu LOVE = 3 chu ky
 ```
 
-### Cac file can sua
+## Chi tiet ky thuat
+
+### 1. Tao file cau hinh `src/config/gov-groups.ts`
+
+Dinh nghia 3 nhom voi dia chi vi thanh vien:
+
+- Kieu `GovGroup` gom: id, name, nameVi, icon, members (ten + dia chi)
+- Kieu `GovMember` gom: name, address, group
+- Ham `getGroupForAddress(address)` -> tra ve nhom cua vi
+- Ham `validateGroupCoverage(signerAddresses[])` -> kiem tra du 3 nhom chua
+- Hang so `GOV_GROUPS` va `ALL_GOV_MEMBERS`
+
+### 2. Cap nhat `MultiSigMintFlow.tsx`
+
+**Thay doi giao dien:**
+- Tab "Tao": giu nguyen, them hien thi "Yeu cau: 1 WILL + 1 WISDOM + 1 LOVE"
+- Tab "Ky": thay the danh sach Slot 1/2/3 bang 3 khoi nhom:
+  - Khoi WILL: hien thi 3 thanh vien, danh dau ai da ky (xanh), ai chua (xam)
+  - Khoi WISDOM: tuong tu
+  - Khoi LOVE: tuong tu
+- Tab "Gui": kiem tra `validateGroupCoverage` truoc khi cho gui
+
+**Thay doi logic:**
+- Truoc khi ky: kiem tra vi thuoc nhom nao, kiem tra nhom do da co nguoi ky chua
+- Neu nhom da co chu ky -> bao loi "Nhom [ten nhom] da co nguoi ky roi"
+- `isReady` = validateGroupCoverage(cac dia chi da ky) thay vi chi dem so luong
+
+### 3. Cap nhat `MintRequestsTab.tsx`
+
+- Import gov-groups config
+- Hien thi chu ky theo nhom thay vi Slot 1/2/3
+- Kiem tra nhom truoc khi cho ky
+- Validate group coverage truoc khi cho gui giao dich
+
+### 4. Cap nhat `MintRequests.tsx` (trang doc lap)
+
+- Tuong tu MintRequestsTab: hien thi theo nhom, validate group coverage
+
+### 5. Cap nhat `useMintRequests.ts`
+
+- Trong `addSignature`: them kiem tra group coverage (khong cho 2 nguoi cung nhom ky)
+
+## Luu y
+
+- Smart Contract khong biet ve nhom - chi kiem tra du 3 chu ky hop le tu Attester
+- Tat ca validation nhom thuc hien o tang ung dung (frontend + database hook)
+- Neu sau nay them/bot thanh vien, chi can sua file `gov-groups.ts`
+- Cac dia chi phai trung voi dia chi da dang ky Attester tren contract
+
+## Cac file can tao/sua
 
 | File | Thay doi |
 |------|----------|
-| `src/pages/Simulator.tsx` | Them 3 tab (Simulator, Mint Requests, Sign), nhung logic tu useMintRequests |
+| `src/config/gov-groups.ts` | **Moi** - Dinh nghia 3 nhom va cac ham validate |
+| `src/components/simulator/MultiSigMintFlow.tsx` | Sua - Hien thi theo nhom, validate nhom |
+| `src/components/simulator/MintRequestsTab.tsx` | Sua - Hien thi theo nhom, validate nhom |
+| `src/pages/MintRequests.tsx` | Sua - Hien thi theo nhom, validate nhom |
+| `src/hooks/useMintRequests.ts` | Sua - Them group validation khi addSignature |
 
