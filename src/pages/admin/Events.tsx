@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { supabase } from '@/integrations/supabase/client';
 import { FunNavbar } from '@/components/layout/FunNavbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,14 +26,18 @@ interface EventRow {
 export default function AdminEvents() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: rolesLoading } = useUserRoles();
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchName, setSearchName] = useState('');
   const [filterModule, setFilterModule] = useState('all');
 
   useEffect(() => {
-    if (!authLoading && !user) navigate('/auth');
-  }, [user, authLoading, navigate]);
+    if (!authLoading && !rolesLoading) {
+      if (!user) navigate('/auth');
+      else if (!isAdmin) navigate('/');
+    }
+  }, [user, isAdmin, authLoading, rolesLoading, navigate]);
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -51,10 +56,10 @@ export default function AdminEvents() {
   };
 
   useEffect(() => {
-    if (user) fetchEvents();
-  }, [user, searchName, filterModule]);
+    if (user && isAdmin) fetchEvents();
+  }, [user, isAdmin, searchName, filterModule]);
 
-  if (authLoading || !user) return null;
+  if (authLoading || rolesLoading || !user || !isAdmin) return null;
 
   return (
     <div className="min-h-screen bg-background">
