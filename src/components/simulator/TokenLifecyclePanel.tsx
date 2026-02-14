@@ -114,7 +114,19 @@ export function TokenLifecyclePanel({ refreshTrigger }: TokenLifecyclePanelProps
   };
 
   if (!isConnected || !isCorrectChain) {
-    return null;
+    return (
+      <Card className="bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-amber-200/50">
+        <CardContent className="py-8 text-center space-y-3">
+          <Sparkles className="w-8 h-8 text-amber-400 mx-auto" />
+          <p className="text-sm font-medium text-amber-700">
+            Vui lòng kết nối ví MetaMask và chọn mạng BSC Testnet để xem số dư token.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            💡 LOCKED → Activate → ACTIVATED → Claim → FLOWING
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   const hasAnyBalance = locked > 0n || activated > 0n || flowing > 0n;
