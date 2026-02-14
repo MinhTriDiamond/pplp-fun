@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { HeroSection } from "@/components/HeroSection";
 import { PlatformsSection } from "@/components/PlatformsSection";
 import { PillarsSection } from "@/components/PillarsSection";
@@ -11,7 +12,7 @@ import { ArrowRight } from "lucide-react";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-14 md:pb-0">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -94,6 +95,7 @@ const Index = () => {
           </div>
         </div>
       </footer>
+      <BottomNav />
     </div>
   );
 };

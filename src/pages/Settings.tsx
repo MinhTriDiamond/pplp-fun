@@ -7,6 +7,7 @@ import { ProfileForm } from '@/components/settings/ProfileForm';
 import { PrivacyDashboard } from '@/components/settings/PrivacyDashboard';
 import { UsernameForm } from '@/components/settings/UsernameForm';
 import { FunNavbar } from '@/components/layout/FunNavbar';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Settings() {
@@ -62,6 +63,7 @@ export default function Settings() {
           </TabsContent>
         </Tabs>
       </main>
+      <BottomNav />
     </div>
   );
 }

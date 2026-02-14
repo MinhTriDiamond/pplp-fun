@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Sparkles, LogIn, Link as LinkIcon, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useModuleLink } from '@/hooks/useModuleLink';
+import { trackEvent } from '@/lib/fun-sdk/events';
 import type { PlatformId } from '@/types/fun-core.types';
 
 interface ContinueWithFunIdProps {
@@ -69,7 +70,10 @@ export function ContinueWithFunId({ platformId, platformName, platformIcon, chil
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={() => linkModule()} className="w-full gap-2" size="lg">
+            <Button onClick={() => {
+              linkModule();
+              trackEvent('module_activated', { platform_id: platformId }, platformId).catch(() => {});
+            }} className="w-full gap-2" size="lg">
               <LinkIcon className="h-5 w-5" />
               Kích hoạt {platformName}
             </Button>
