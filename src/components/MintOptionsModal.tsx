@@ -32,41 +32,40 @@ const TESTNET_INFO = {
 export function MintOptionsModal({ isOpen, onClose }: MintOptionsModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl bg-white border-amber-200">
+      <DialogContent className="sm:max-w-3xl bg-white border-amber-200 max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-center gap-2 text-2xl">
-            <Sparkles className="w-6 h-6 text-amber-500" />
+          <DialogTitle className="flex items-center justify-center gap-2 text-xl sm:text-2xl">
+            <Sparkles className="w-5 h-5 text-amber-500" />
             <span className="text-gradient-rainbow">MINT FUN MONEY</span>
-            <Sparkles className="w-6 h-6 text-amber-500" />
+            <Sparkles className="w-5 h-5 text-amber-500" />
           </DialogTitle>
-          <p className="text-center text-cyan-600 mt-2">
+          <p className="text-center text-cyan-600 mt-1 text-sm">
             Chọn phương thức để trải nghiệm mint FUN Money
           </p>
         </DialogHeader>
         
-        <div className="grid md:grid-cols-3 gap-4 mt-6">
+        <div className="grid md:grid-cols-3 gap-3 mt-4">
           {/* Simulator Option */}
           <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-cyan-200 bg-gradient-to-b from-cyan-50 to-white cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="inline-flex rounded-full p-4 bg-cyan-100 mb-4 group-hover:bg-cyan-200 transition-colors">
-                <Gamepad2 className="h-8 w-8 text-cyan-600" />
+            <CardContent className="p-4 text-center">
+              <div className="inline-flex rounded-full p-3 bg-cyan-100 mb-3 group-hover:bg-cyan-200 transition-colors">
+                <Gamepad2 className="h-6 w-6 text-cyan-600" />
               </div>
               
-              <h3 className="font-display text-lg font-bold text-cyan-700 mb-2">
+              <h3 className="font-display text-base font-bold text-cyan-700 mb-1">
                 🎮 SIMULATOR
               </h3>
               
-              <p className="text-sm text-cyan-600/80 mb-4">
+              <p className="text-xs text-cyan-600/80 mb-3">
                 Demo tính toán FUN Money offline, không cần ví crypto
               </p>
               
-              <ul className="text-xs text-left text-cyan-600/70 mb-4 space-y-1">
+              <ul className="text-xs text-left text-cyan-600/70 mb-3 space-y-0.5 hidden sm:block">
                 <li>✓ Chọn Platform & Action</li>
                 <li>✓ Điều chỉnh 5 Trụ Cột</li>
                 <li>✓ Xem Mint Preview</li>
                 <li>✓ Miễn phí 100%</li>
               </ul>
-              
               <Link to="/simulator" onClick={onClose}>
                 <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-white">
                   Thử Ngay
@@ -78,26 +77,25 @@ export function MintOptionsModal({ isOpen, onClose }: MintOptionsModalProps) {
           
           {/* Testnet Option */}
           <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-amber-200 bg-gradient-to-b from-amber-50 to-white cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="inline-flex rounded-full p-4 bg-amber-100 mb-4 group-hover:bg-amber-200 transition-colors">
-                <Link2 className="h-8 w-8 text-amber-600" />
+            <CardContent className="p-4 text-center">
+              <div className="inline-flex rounded-full p-3 bg-amber-100 mb-3 group-hover:bg-amber-200 transition-colors">
+                <Link2 className="h-6 w-6 text-amber-600" />
               </div>
               
-              <h3 className="font-display text-lg font-bold text-amber-700 mb-2">
+              <h3 className="font-display text-base font-bold text-amber-700 mb-1">
                 🔗 TESTNET
               </h3>
               
-              <p className="text-sm text-amber-600/80 mb-4">
+              <p className="text-xs text-amber-600/80 mb-3">
                 Mint FUN thật trên BSC Testnet với ví MetaMask
               </p>
               
-              <ul className="text-xs text-left text-amber-600/70 mb-4 space-y-1">
+              <ul className="text-xs text-left text-amber-600/70 mb-3 space-y-0.5 hidden sm:block">
                 <li>✓ Chain ID: {TESTNET_INFO.chainId}</li>
                 <li>✓ Lấy tBNB miễn phí</li>
                 <li>✓ Deploy & Test Contract</li>
                 <li>✓ Verify trên BSCScan</li>
               </ul>
-              
               <a 
                 href={TESTNET_INFO.faucet} 
                 target="_blank" 
@@ -113,26 +111,25 @@ export function MintOptionsModal({ isOpen, onClose }: MintOptionsModalProps) {
           
           {/* Documentation Option */}
           <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-violet-200 bg-gradient-to-b from-violet-50 to-white cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="inline-flex rounded-full p-4 bg-violet-100 mb-4 group-hover:bg-violet-200 transition-colors">
-                <BookOpen className="h-8 w-8 text-violet-600" />
+            <CardContent className="p-4 text-center">
+              <div className="inline-flex rounded-full p-3 bg-violet-100 mb-3 group-hover:bg-violet-200 transition-colors">
+                <BookOpen className="h-6 w-6 text-violet-600" />
               </div>
               
-              <h3 className="font-display text-lg font-bold text-violet-700 mb-2">
+              <h3 className="font-display text-base font-bold text-violet-700 mb-1">
                 📖 HƯỚNG DẪN
               </h3>
               
-              <p className="text-sm text-violet-600/80 mb-4">
+              <p className="text-xs text-violet-600/80 mb-3">
                 Chi tiết cách deploy và mint FUN Money trên blockchain
               </p>
               
-              <ul className="text-xs text-left text-violet-600/70 mb-4 space-y-1">
+              <ul className="text-xs text-left text-violet-600/70 mb-3 space-y-0.5 hidden sm:block">
                 <li>✓ Cài MetaMask</li>
                 <li>✓ Deploy bằng Remix</li>
                 <li>✓ Verify Contract</li>
                 <li>✓ Test Functions</li>
               </ul>
-              
               <Link to="/contract-docs" onClick={onClose}>
                 <Button className="w-full bg-violet-500 hover:bg-violet-600 text-white">
                   Đọc Guide
@@ -144,8 +141,8 @@ export function MintOptionsModal({ isOpen, onClose }: MintOptionsModalProps) {
         </div>
         
         {/* Testnet Info */}
-        <div className="mt-6 p-4 bg-gradient-to-r from-cyan-50 via-amber-50 to-violet-50 rounded-xl border border-amber-100">
-          <h4 className="font-semibold text-amber-700 mb-2 text-center">
+        <div className="mt-4 p-3 bg-gradient-to-r from-cyan-50 via-amber-50 to-violet-50 rounded-xl border border-amber-100 hidden sm:block">
+          <h4 className="font-semibold text-amber-700 mb-2 text-center text-sm">
             📋 Thông Tin BSC Testnet
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
