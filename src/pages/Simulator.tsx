@@ -56,28 +56,29 @@ export default function Simulator() {
   }, [platformId, actionType, pillarScores, unitySignals, userTier, antiSybilScore, hasStake, activePlatforms, lightScore]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <Link to="/">
-                <Button variant="ghost" size="sm" className="gap-2">
+                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8">
                   <ArrowLeft className="h-4 w-4" />
-                  Trang chủ
                 </Button>
               </Link>
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-primary" />
-                <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Sparkles className="h-5 w-5 text-primary shrink-0" />
+                <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
                   PPLP Simulator
                 </h1>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <p className="text-sm text-muted-foreground hidden md:block">Test & Mint FUN Money</p>
+            <div className="flex items-center gap-2 shrink-0">
+              <p className="text-sm text-muted-foreground hidden lg:block">Test & Mint FUN Money</p>
               <UserMenu />
-              <WalletConnect />
+              <div className="hidden sm:block">
+                <WalletConnect />
+              </div>
             </div>
           </div>
         </div>
@@ -85,18 +86,18 @@ export default function Simulator() {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="simulator" className="space-y-6">
-          <TabsList className="grid w-full max-w-lg grid-cols-4">
-            <TabsTrigger value="simulator" className="gap-1.5">
-              <Sparkles className="h-3.5 w-3.5" /> Simulator
+          <TabsList className="grid w-full max-w-lg grid-cols-4 h-auto">
+            <TabsTrigger value="simulator" className="gap-1 text-xs sm:text-sm px-2">
+              <Sparkles className="h-3.5 w-3.5 shrink-0" /> <span className="hidden sm:inline">Simulator</span><span className="sm:hidden">Sim</span>
             </TabsTrigger>
-            <TabsTrigger value="requests" className="gap-1.5">
-              <ListChecks className="h-3.5 w-3.5" /> Requests
+            <TabsTrigger value="requests" className="gap-1 text-xs sm:text-sm px-2">
+              <ListChecks className="h-3.5 w-3.5 shrink-0" /> <span className="hidden sm:inline">Requests</span><span className="sm:hidden">Req</span>
             </TabsTrigger>
-            <TabsTrigger value="sign" className="gap-1.5">
-              <Pen className="h-3.5 w-3.5" /> Sign
+            <TabsTrigger value="sign" className="gap-1 text-xs sm:text-sm px-2">
+              <Pen className="h-3.5 w-3.5 shrink-0" /> Sign
             </TabsTrigger>
-            <TabsTrigger value="claim" className="gap-1.5">
-              <Gift className="h-3.5 w-3.5" /> Claim
+            <TabsTrigger value="claim" className="gap-1 text-xs sm:text-sm px-2">
+              <Gift className="h-3.5 w-3.5 shrink-0" /> Claim
             </TabsTrigger>
           </TabsList>
 
