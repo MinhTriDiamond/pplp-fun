@@ -97,13 +97,25 @@ Deno.serve(async (req) => {
       return errorResponse("METHOD_NOT_ALLOWED", "Use POST", traceId, 405);
     }
 
-    const body = await req.json();
-    const action = body.action || path;
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return errorResponse("INVALID_JSON", "Request body must be valid JSON", traceId);
+    }
+    const action = (body.action as string) || path;
+
+    // Shared input validation helper
+    const validateAmount = (amt: unknown): number | null => {
+      if (typeof amt !== "number" || !Number.isFinite(amt) || amt <= 0 || amt > 1_000_000_000) return null;
+      return amt;
+    };
 
     // POST transfer
     if (action === "transfer") {
-      const { to_username, to_user_id, asset = "FUN", amount, memo } = body;
-      if (!amount || amount <= 0) return errorResponse("INVALID_AMOUNT", "Amount must be > 0", traceId);
+      const { to_username, to_user_id, asset = "FUN", amount: rawAmount, memo } = body as Record<string, unknown>;
+      const amount = validateAmount(rawAmount);
+      if (!amount) return errorResponse("INVALID_AMOUNT", "Amount must be a positive number up to 1,000,000,000", traceId);
 
       // Resolve recipient
       let recipientId = to_user_id;
@@ -206,8 +218,9 @@ Deno.serve(async (req) => {
 
     // POST pay
     if (action === "pay") {
-      const { module, order_id, asset = "FUN", amount } = body;
-      if (!amount || amount <= 0) return errorResponse("INVALID_AMOUNT", "Amount must be > 0", traceId);
+      const { module, order_id, asset = "FUN", amount: rawPayAmt } = body as Record<string, unknown>;
+      const amount = validateAmount(rawPayAmt);
+      if (!amount) return errorResponse("INVALID_AMOUNT", "Amount must be a positive number", traceId);
       if (!module || !order_id) return errorResponse("MISSING_FIELDS", "module and order_id required", traceId);
 
       const { data: wallet } = await supabase
@@ -332,6 +345,7 @@ Deno.serve(async (req) => {
 
     return errorResponse("UNKNOWN_ACTION", `Unknown action: ${action}`, traceId);
   } catch (err) {
-    return errorResponse("INTERNAL_ERROR", (err as Error).message, traceId, 500);
+    console.error("wallet-operations error:", (err as Error).message);
+    return errorResponse("INTERNAL_ERROR", "An internal error occurred", traceId, 500);
   }
 });

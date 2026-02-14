@@ -27,13 +27,7 @@ export default function Auth() {
     const result = await signIn(email, password);
 
     if (result.error) {
-      if (result.error.message.includes('Invalid login credentials')) {
-        setError('Email hoặc mật khẩu không đúng');
-      } else if (result.error.message.includes('Email not confirmed')) {
-        setError('Vui lòng xác nhận email trước khi đăng nhập');
-      } else {
-        setError(result.error.message);
-      }
+      setError('Đăng nhập không thành công. Vui lòng kiểm tra thông tin và thử lại.');
     } else {
       navigate('/');
     }
@@ -48,11 +42,7 @@ export default function Auth() {
     const result = await signUp(email, password);
 
     if (result.error) {
-      if (result.error.message.includes('already registered')) {
-        setError('Email đã được đăng ký. Vui lòng đăng nhập.');
-      } else {
-        setError(result.error.message);
-      }
+      setError('Đăng ký không thành công. Vui lòng thử lại.');
     } else {
       setSuccessMessage('Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.');
     }
