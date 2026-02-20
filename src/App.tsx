@@ -10,6 +10,8 @@ import MintRequests from "./pages/MintRequests";
 import ContractDocs from "./pages/ContractDocs";
 import Documentation from "./pages/Documentation";
 import Auth from "./pages/Auth";
+import SetupIdentity from "./pages/auth/SetupIdentity";
+import LinkAccounts from "./pages/auth/LinkAccounts";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import AdminEvents from "./pages/admin/Events";
@@ -41,6 +43,8 @@ const App = () => (
           <Route path="/contract-docs" element={<ContractDocs />} />
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/setup-identity" element={<SetupIdentity />} />
+          <Route path="/auth/link-accounts" element={<LinkAccounts />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/wallet" element={<WalletPage />} />
           <Route path="/treasury" element={<Treasury />} />
