@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkles, Mail, KeyRound, ArrowRight, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +14,80 @@ import { lovable } from '@/integrations/lovable';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-type AuthView = 'main' | 'email-pw' | 'otp';
+type AuthView = 'main' | 'email-pw' | 'otp' | 'forgot';
+
+function ForgotPasswordInline({ onBack }: { onBack: () => void }) {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+      if (error) throw error;
+      setSent(true);
+    } catch (err: any) {
+      setError(err.message || 'Không thể gửi email đặt lại mật khẩu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="space-y-4 text-center">
+        <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+          Đã gửi email đặt lại mật khẩu! Kiểm tra hộp thư của bạn.
+        </div>
+        <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onBack}>
+          ← Quay lại đăng nhập
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h2 className="text-lg font-semibold text-center">Quên mật khẩu</h2>
+      <p className="text-sm text-muted-foreground text-center">
+        Nhập email để nhận liên kết đặt lại mật khẩu
+      </p>
+      {error && (
+        <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      <div className="space-y-2">
+        <Label htmlFor="forgot-email">Email</Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="forgot-email"
+            type="email"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="pl-10"
+            disabled={loading}
+          />
+        </div>
+      </div>
+      <Button type="submit" className="w-full" disabled={loading || !email}>
+        {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Đang gửi...</> : 'Gửi liên kết đặt lại'}
+      </Button>
+      <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onBack}>
+        ← Quay lại đăng nhập
+      </Button>
+    </form>
+  );
+}
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -235,6 +309,7 @@ export default function Auth() {
                   loading={loading}
                   error={error}
                   hideGoogleButton
+                  onForgotPassword={() => { setView('forgot'); setError(null); }}
                 />
 
                 <Button
@@ -254,6 +329,12 @@ export default function Auth() {
                 onBack={() => { setView('main'); setError(null); }}
                 loading={loading}
                 error={error}
+              />
+            )}
+
+            {view === 'forgot' && (
+              <ForgotPasswordInline
+                onBack={() => { setView('email-pw'); setError(null); }}
               />
             )}
           </>

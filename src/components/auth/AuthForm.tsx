@@ -17,9 +17,10 @@ interface AuthFormProps {
   error?: string | null;
   onGoogleSuccess?: () => void;
   hideGoogleButton?: boolean;
+  onForgotPassword?: () => void;
 }
 
-export function AuthForm({ mode, onSubmit, loading, error, onGoogleSuccess, hideGoogleButton }: AuthFormProps) {
+export function AuthForm({ mode, onSubmit, loading, error, onGoogleSuccess, hideGoogleButton, onForgotPassword }: AuthFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -195,6 +196,18 @@ export function AuthForm({ mode, onSubmit, loading, error, onGoogleSuccess, hide
           {validationErrors.confirmPassword && (
             <p className="text-xs text-destructive">{validationErrors.confirmPassword}</p>
           )}
+        </div>
+      )}
+
+      {mode === 'signin' && onForgotPassword && (
+        <div className="text-right">
+          <button
+            type="button"
+            className="text-xs text-primary hover:underline"
+            onClick={onForgotPassword}
+          >
+            Quên mật khẩu?
+          </button>
         </div>
       )}
 
