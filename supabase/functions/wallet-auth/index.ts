@@ -43,7 +43,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create admin client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -51,6 +50,8 @@ Deno.serve(async (req) => {
     );
 
     const walletEmail = `${address.toLowerCase()}@wallet.fun`;
+    // Use a deterministic password derived from address
+    const walletPassword = `wallet_${address.toLowerCase()}_${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!.slice(-16)}`;
 
     // Find or create user
     let userId: string;
@@ -63,10 +64,10 @@ Deno.serve(async (req) => {
         throw new Error('User not found');
       }
     } catch {
-      // Create new user
+      // Create new user with deterministic password
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: walletEmail,
-        password: crypto.randomUUID(),
+        password: walletPassword,
         email_confirm: true,
         user_metadata: {
           wallet_address: address.toLowerCase(),
@@ -80,21 +81,23 @@ Deno.serve(async (req) => {
       userId = newUser.user.id;
     }
 
-    // Generate session
-    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
+    // Sign in with password to get valid session tokens
+    const anonClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Ensure password is set correctly for existing users
+    await supabaseAdmin.auth.admin.updateUser(userId, { password: walletPassword });
+
+    const { data: signInData, error: signInError } = await anonClient.auth.signInWithPassword({
       email: walletEmail,
+      password: walletPassword,
     });
 
-    if (sessionError || !sessionData) {
-      throw new Error(sessionError?.message || 'Không thể tạo phiên đăng nhập');
-    }
-
-    // Sign in to get tokens
-    const { data: signInData, error: signInError } = await supabaseAdmin.auth.admin.createSession(userId);
-
-    if (signInError || !signInData) {
-      throw new Error(signInError?.message || 'Không thể tạo session');
+    if (signInError || !signInData.session) {
+      throw new Error(signInError?.message || 'Không thể tạo phiên đăng nhập');
     }
 
     return new Response(
