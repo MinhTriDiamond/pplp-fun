@@ -1,231 +1,112 @@
 
-# Hệ thống FUN ID Auth — eco.fun.rich
 
-## Tổng quan
+# Bước tiếp theo: Hoàn thiện FUN ID Auth
 
-Nâng cấp toàn bộ trang `/auth` thành hệ thống FUN ID chính thức, hỗ trợ 4 phương thức đăng nhập, bắt buộc chọn username sau đăng ký lần đầu, và có màn hình hợp nhất tài khoản từ các platform cũ.
+## Tình trạng hiện tại
 
-Dự án hiện tại đã có:
-- Email + Password (AuthForm, useAuth)
-- Google OAuth (lovable.auth.signInWithOAuth)
-- useWallet hook (MetaMask / BSC Testnet)
-- UsernameForm component (có thể tái sử dụng)
-- profiles, module_users, identities_link tables
+Hệ thống FUN ID đã có:
+- Trang /auth với 4 phương thức (Email+PW, OTP, Google, Wallet)
+- Trang /auth/setup-identity (chọn username bắt buộc)
+- Trang /auth/link-accounts (hợp nhất tài khoản)
+- Edge function wallet-auth
+- Hook useAuth, usePostAuthRedirect, useUsername
 
----
+## Các phần còn thiếu cần build
 
-## Kiến trúc Flow
+### 1. Route /auth/callback cho OTP Magic Link
 
-```
-User vào /auth
-       │
-       ▼
-┌──────────────────────────────────┐
-│  FUN ID — 4 phương thức         │
-│  [Email+PW] [OTP] [Google] [Wallet] │
-└──────────────────────────────────┘
-       │
-       ▼
-  Đăng nhập/ký thành công?
-       │
-       ├── User MỚI (chưa có username)
-       │         │
-       │         ▼
-       │   /auth/setup-identity (bắt buộc)
-       │   - Chọn username
-       │   - Tên hiển thị (optional)
-       │         │
-       │         ▼
-       │   /auth/link-accounts (optional, có "Để sau")
-       │   - Hợp nhất tài khoản cũ
-       │         │
-       │         ▼
-       │   Redirect returnTo (hoặc '/')
-       │
-       └── User CŨ (đã có username)
-                 │
-                 ▼
-           /auth/link-accounts (optional)
-           hoặc redirect returnTo thẳng
-```
+OTP magic link redirect về `/auth/callback` nhưng route này chưa tồn tại. Cần tạo trang callback để:
+- Xử lý token từ URL hash (Supabase tự động gắn token vào URL)
+- Kiểm tra username setup
+- Redirect đúng nơi
 
----
+**File mới:** `src/pages/auth/AuthCallback.tsx`
 
-## Phần 1: Nâng cấp trang /auth
+### 2. Quên mật khẩu / Đặt lại mật khẩu
 
-### 1.1 Giao diện 4 phương thức
+Hiện tại trang Email+Password không có nút "Quên mật khẩu". Cần:
+- Thêm link "Quên mật khẩu?" vào AuthForm
+- Tạo trang `/auth/reset-password` để user đặt mật khẩu mới sau khi click link trong email
 
-Thay thiết kế tab "Đăng nhập / Đăng ký" hiện tại thành màn hình FUN ID với 4 lựa chọn rõ ràng:
+**File mới:** `src/pages/auth/ResetPassword.tsx`
+**File sửa:** `src/components/auth/AuthForm.tsx` (thêm link quên mật khẩu)
 
-```
-┌─────────────────────────────────┐
-│   ✨ FUN ID                     │
-│   Một tài khoản · Ba platform  │
-│                                 │
-│  [📧 Tiếp tục với Email]        │
-│  [🔢 Tiếp tục với OTP]          │
-│  [G  Tiếp tục với Google]       │
-│  [🦊 Tiếp tục với Wallet]       │
-│                                 │
-│  Chưa có tài khoản? Đăng ký    │
-└─────────────────────────────────┘
-```
+### 3. Cấu hình wallet-auth Edge Function
 
-- **Email + Password**: form 2 trường (đã có, giữ nguyên logic)
-- **OTP Email**: nhập email → gửi magic link qua `supabase.auth.signInWithOtp()`
-- **Google**: dùng `lovable.auth.signInWithOAuth("google")` (đã có)
-- **Wallet**: ký message → dùng `supabase.auth.signInWithPassword()` với wallet address làm định danh
+File `supabase/config.toml` chưa có cấu hình `verify_jwt = false` cho wallet-auth. Cần thêm để function nhận request không cần JWT.
 
-### 1.2 returnTo support
+**File sửa:** `supabase/config.toml`
 
-Đọc `?returnTo=` từ URL params, lưu vào state, redirect sau khi auth thành công.
+### 4. Sửa wallet-auth Edge Function
 
----
+Function hiện dùng `admin.createSession()` nhưng API này có thể không khả dụng. Cần đổi sang cách tiếp cận an toàn hơn: dùng `signInWithPassword` với password được lưu trữ, hoặc dùng `admin.generateLink` rồi exchange token.
 
-## Phần 2: Màn hình Setup Identity (mới)
+**File sửa:** `supabase/functions/wallet-auth/index.ts`
 
-### Route: `/auth/setup-identity`
+### 5. Auth Guard cho các trang cần đăng nhập
 
-Hiển thị bắt buộc với user mới (username = null trong profiles).
+Tạo component `RequireAuth` để bảo vệ các route cần đăng nhập (Settings, Wallet, Simulator, v.v.) thay vì kiểm tra thủ công trong từng trang.
 
-Tái sử dụng logic từ `UsernameForm` + thêm:
-- Trường "Tên hiển thị" (optional)
-- Badge giải thích: "Username không thể thay đổi sau 30 ngày"
-- Nút "Xác nhận" → lưu username → tiếp tục
-
-**Logic kiểm tra:**
-```typescript
-// Sau khi auth thành công
-const { data } = await supabase.from('profiles').select('username').eq('id', user.id).single()
-if (!data?.username) {
-  navigate('/auth/setup-identity?returnTo=' + returnTo)
-}
-```
-
----
-
-## Phần 3: Màn hình Link Accounts (Hợp nhất tài khoản)
-
-### Route: `/auth/link-accounts`
-
-Hiển thị sau setup-identity (hoặc trực tiếp với user cũ).
-
-```
-┌────────────────────────────────────┐
-│  🔗 Nâng cấp tài khoản            │
-│  Liên kết tài khoản từ các platform │
-│  bạn đã dùng để không mất dữ liệu  │
-│                                    │
-│  Platform       Trạng thái         │
-│  FUN Profile    ✅ Đã liên kết     │
-│  FUN Play       [Liên kết ngay]    │
-│  Angel AI       [Liên kết ngay]    │
-│                                    │
-│  [Để sau →]                        │
-└────────────────────────────────────┘
-```
-
-- Đọc dữ liệu từ bảng `module_users` hiện có
-- Nút "Liên kết ngay" → hiện mini-form xác minh (OTP email hoặc Google)
-- Sau xác minh → upsert vào `module_users`
-- Nút "Để sau" → redirect thẳng về returnTo
-
----
-
-## Phần 4: Wallet Sign-In
-
-### Logic
-
-Wallet không có email nên cần flow riêng:
-
-1. User click "Tiếp tục với Wallet"
-2. App dùng `useWallet.connect()` để lấy address
-3. Tạo message: `"Đăng nhập FUN ID: {address} lúc {timestamp}"`
-4. Ký message bằng MetaMask → lấy signature
-5. Gọi edge function `wallet-auth` để:
-   - Verify signature (ethers.verifyMessage)
-   - Tìm hoặc tạo user với email = `{address}@wallet.fun`
-   - Trả về custom JWT token
-6. Set session qua `supabase.auth.setSession()`
-
-### Edge function mới: `supabase/functions/wallet-auth/index.ts`
-
----
-
-## Các file cần tạo/sửa
-
-| File | Thay đổi |
-|------|----------|
-| `src/pages/Auth.tsx` | Redesign toàn bộ với 4 phương thức auth |
-| `src/pages/auth/SetupIdentity.tsx` | **Mới** — màn chọn username bắt buộc |
-| `src/pages/auth/LinkAccounts.tsx` | **Mới** — màn hợp nhất tài khoản |
-| `src/components/auth/AuthForm.tsx` | Tách thành các component nhỏ hơn |
-| `src/components/auth/OtpForm.tsx` | **Mới** — form nhập email gửi magic link |
-| `src/components/auth/WalletAuthButton.tsx` | **Mới** — nút Sign-In với Wallet |
-| `src/hooks/useAuth.ts` | Thêm `signInWithOtp()`, `checkUsernameSetup()` |
-| `supabase/functions/wallet-auth/index.ts` | **Mới** — verify wallet signature |
-| `src/App.tsx` | Thêm routes `/auth/setup-identity`, `/auth/link-accounts` |
-
----
-
-## Database
-
-Không cần migration mới — dùng lại:
-- `profiles` (trường `username`) — detect user mới
-- `module_users` — tracking platform link status
+**File mới:** `src/components/auth/RequireAuth.tsx`
+**File sửa:** `src/App.tsx` (wrap các route cần bảo vệ)
 
 ---
 
 ## Chi tiết kỹ thuật
 
-### OTP Email
+### AuthCallback page
 
-```typescript
-// useAuth.ts — thêm method mới
-const signInWithOtp = async (email: string) => {
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
-  })
-  return { error }
-}
+```text
+User click magic link trong email
+  -> redirect về /auth/callback#access_token=...
+  -> Supabase tự động parse token từ hash
+  -> useAuth detect session mới
+  -> Check username -> redirect setup-identity hoặc returnTo
 ```
 
-### Wallet Auth Edge Function
+### ResetPassword page
 
-```typescript
-// Verify signature server-side
-import { ethers } from "npm:ethers@6"
-const recoveredAddress = ethers.verifyMessage(message, signature)
-if (recoveredAddress.toLowerCase() !== address.toLowerCase()) throw new Error("Invalid signature")
-
-// Dùng service role để tạo/tìm user
-const { data } = await supabaseAdmin.auth.admin.getUserByEmail(`${address}@wallet.fun`)
+```text
+User click "Quên mật khẩu" ở AuthForm
+  -> Nhập email -> supabase.auth.resetPasswordForEmail()
+  -> User nhận email -> click link
+  -> Redirect về /auth/reset-password#type=recovery
+  -> Hiện form nhập mật khẩu mới
+  -> supabase.auth.updateUser({ password })
 ```
 
-### Guard component
+### RequireAuth component
 
-```typescript
-// Sau auth success, check username
-export function usePostAuthRedirect() {
-  const { user } = useAuth()
-  const navigate = useNavigate()
-  
-  useEffect(() => {
-    if (!user) return
-    supabase.from('profiles').select('username').eq('id', user.id).single()
-      .then(({ data }) => {
-        if (!data?.username) navigate('/auth/setup-identity')
-      })
-  }, [user])
-}
+```text
+<RequireAuth>
+  <Settings />
+</RequireAuth>
+
+// Nếu chưa login -> redirect /auth?returnTo=current_path
+// Nếu đã login -> render children
 ```
 
----
+### Các route cần bảo vệ
 
-## UX Notes
+| Route | Bảo vệ |
+|-------|--------|
+| /settings | RequireAuth |
+| /wallet | RequireAuth |
+| /simulator | RequireAuth |
+| /mint-requests | RequireAuth |
+| /treasury | RequireAuth |
+| /angel | RequireAuth |
+| /admin/events | RequireAuth + Admin role |
 
-- Không dùng từ kỹ thuật (migration, mapping, session)
-- Ngôn ngữ: "Nâng cấp tài khoản", "Liên kết nhanh", "Để sau"
-- Mobile-first: tất cả form fit trong 1 màn hình không cần scroll
-- Loading states đầy đủ cho từng bước
+### Tổng hợp file thay đổi
+
+| File | Thay doi |
+|------|----------|
+| `src/pages/auth/AuthCallback.tsx` | Moi - xu ly OTP callback |
+| `src/pages/auth/ResetPassword.tsx` | Moi - dat lai mat khau |
+| `src/components/auth/RequireAuth.tsx` | Moi - guard component |
+| `src/components/auth/AuthForm.tsx` | Them link "Quen mat khau" |
+| `src/App.tsx` | Them routes callback, reset-password, wrap RequireAuth |
+| `supabase/config.toml` | Them verify_jwt = false cho wallet-auth |
+| `supabase/functions/wallet-auth/index.ts` | Sua cach tao session |
+
