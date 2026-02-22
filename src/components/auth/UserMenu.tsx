@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,11 +11,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, LogOut, History, ChevronDown, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { AuthModal } from './AuthModal';
 
 export function UserMenu() {
   const { user, loading, signOut, isAuthenticated } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -33,22 +33,15 @@ export function UserMenu() {
 
   if (!isAuthenticated) {
     return (
-      <>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowAuthModal(true)}
-          className="gap-2"
-        >
-          <User className="h-4 w-4" />
-          Đăng nhập
-        </Button>
-
-        <AuthModal
-          open={showAuthModal}
-          onOpenChange={setShowAuthModal}
-        />
-      </>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => navigate('/auth')}
+        className="gap-2"
+      >
+        <User className="h-4 w-4" />
+        Đăng nhập
+      </Button>
     );
   }
 
