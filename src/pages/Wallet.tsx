@@ -26,9 +26,6 @@ export default function WalletPage() {
   const [sending, setSending] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (!authLoading && !user) navigate('/auth');
-  }, [user, authLoading, navigate]);
 
   const handleTransfer = async () => {
     const amount = parseFloat(transferAmount);
