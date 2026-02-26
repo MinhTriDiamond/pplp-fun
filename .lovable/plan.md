@@ -1,36 +1,29 @@
 
-# Sửa lỗi build để đăng nhập hoạt động
 
-## Vấn đề
+# Gỡ bỏ toàn bộ Auth Guard -- Truy cập tự do
 
-Có 5 lỗi TypeScript trong 2 edge functions đang chặn deploy, khiến hệ thống auth không hoạt động:
+## Mục tiêu
 
-### wallet-auth/index.ts (2 lỗi)
-1. `getUserByEmail` không tồn tại - cần dùng `listUsers` hoặc tìm user qua query khác
-2. `updateUser(userId, ...)` không tồn tại - cần dùng `updateUserById(userId, ...)`
+Bỏ hết yêu cầu đăng nhập. Mọi trang đều truy cập được trực tiếp mà không cần xác thực.
 
-### wallet-operations/index.ts (3 lỗi cũ)
-3. `.catch()` không tồn tại trên PostgrestFilterBuilder - dòng 147 là placeholder code
-4. `refundAmount > Number(originalTx.amount)` - type mismatch vì `originalTx.amount` trả về `{}` 
-5. `Number(wallet?.available || 0) + refundAmount` - cùng type issue
+## Thay đổi
 
-## Giải pháp
+### 1. `src/App.tsx`
+- Xoá import `RequireAuth`
+- Xoá import các trang auth không cần: `Auth`, `AuthCallback`, `SetupIdentity`, `LinkAccounts`, `ResetPassword`
+- Gỡ `<RequireAuth>` wrapper khỏi 6 route (simulator, mint-requests, settings, wallet, treasury, angel, admin/events) -- render component trực tiếp
+- Xoá 5 route auth: `/auth`, `/auth/callback`, `/auth/setup-identity`, `/auth/link-accounts`, `/auth/reset-password`
 
-### File 1: `supabase/functions/wallet-auth/index.ts`
+### 2. `src/components/layout/FunNavbar.tsx`
+- Xoá phần hiển thị nút "Đăng nhập" và dropdown menu user (avatar, đăng xuất)
+- Giữ lại logo + ModuleSwitcher, bỏ phần auth ở bên phải hoặc đơn giản hoá thành các link trực tiếp (Settings, Wallet) không cần kiểm tra đăng nhập
 
-- Dòng 60: Thay `getUserByEmail(walletEmail)` bằng `listUsers()` rồi filter theo email, hoặc query bảng `auth.users` qua service role
-- Dòng 92: Thay `updateUser(userId, ...)` bằng `updateUserById(userId, ...)`
-- Cập nhật CORS headers cho đầy đủ (thêm `x-supabase-client-platform` headers)
+### 3. Giữ nguyên các file auth (không xoá)
+- Các file như `useAuth.ts`, `RequireAuth.tsx`, `AuthForm.tsx`, v.v. sẽ được giữ nguyên trong codebase để không phá vỡ import ở những nơi khác có thể tham chiếu đến `useAuth` (ví dụ: AngelAI, Settings). Chỉ gỡ bỏ **việc chặn truy cập** (guard), không xoá code auth.
 
-### File 2: `supabase/functions/wallet-operations/index.ts`
+## Kết quả
 
-- Dòng 147: Xóa dòng placeholder `await supabase.rpc("", {}).catch(() => {})`
-- Dòng 295-296: Cast `originalTx.amount` đúng type: `const refundAmount = amount || Number(originalTx.amount as string)`
-- Dòng 310: Cast tương tự: `Number((wallet?.available as string) || '0') + refundAmount`
+- Tất cả trang đều mở được ngay khi truy cập domain
+- Không còn redirect về `/auth`
+- Navbar đơn giản, không yêu cầu đăng nhập
 
-## Sau khi sửa
-
-Edge functions sẽ deploy thành công, cho phép:
-- Đăng nhập Email + Password hoạt động bình thường
-- Đăng nhập Wallet hoạt động
-- Wallet operations (transfer, refund) hoạt động
