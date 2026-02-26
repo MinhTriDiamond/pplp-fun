@@ -1,112 +1,36 @@
 
+# Sửa lỗi build để đăng nhập hoạt động
 
-# Bước tiếp theo: Hoàn thiện FUN ID Auth
+## Vấn đề
 
-## Tình trạng hiện tại
+Có 5 lỗi TypeScript trong 2 edge functions đang chặn deploy, khiến hệ thống auth không hoạt động:
 
-Hệ thống FUN ID đã có:
-- Trang /auth với 4 phương thức (Email+PW, OTP, Google, Wallet)
-- Trang /auth/setup-identity (chọn username bắt buộc)
-- Trang /auth/link-accounts (hợp nhất tài khoản)
-- Edge function wallet-auth
-- Hook useAuth, usePostAuthRedirect, useUsername
+### wallet-auth/index.ts (2 lỗi)
+1. `getUserByEmail` không tồn tại - cần dùng `listUsers` hoặc tìm user qua query khác
+2. `updateUser(userId, ...)` không tồn tại - cần dùng `updateUserById(userId, ...)`
 
-## Các phần còn thiếu cần build
+### wallet-operations/index.ts (3 lỗi cũ)
+3. `.catch()` không tồn tại trên PostgrestFilterBuilder - dòng 147 là placeholder code
+4. `refundAmount > Number(originalTx.amount)` - type mismatch vì `originalTx.amount` trả về `{}` 
+5. `Number(wallet?.available || 0) + refundAmount` - cùng type issue
 
-### 1. Route /auth/callback cho OTP Magic Link
+## Giải pháp
 
-OTP magic link redirect về `/auth/callback` nhưng route này chưa tồn tại. Cần tạo trang callback để:
-- Xử lý token từ URL hash (Supabase tự động gắn token vào URL)
-- Kiểm tra username setup
-- Redirect đúng nơi
+### File 1: `supabase/functions/wallet-auth/index.ts`
 
-**File mới:** `src/pages/auth/AuthCallback.tsx`
+- Dòng 60: Thay `getUserByEmail(walletEmail)` bằng `listUsers()` rồi filter theo email, hoặc query bảng `auth.users` qua service role
+- Dòng 92: Thay `updateUser(userId, ...)` bằng `updateUserById(userId, ...)`
+- Cập nhật CORS headers cho đầy đủ (thêm `x-supabase-client-platform` headers)
 
-### 2. Quên mật khẩu / Đặt lại mật khẩu
+### File 2: `supabase/functions/wallet-operations/index.ts`
 
-Hiện tại trang Email+Password không có nút "Quên mật khẩu". Cần:
-- Thêm link "Quên mật khẩu?" vào AuthForm
-- Tạo trang `/auth/reset-password` để user đặt mật khẩu mới sau khi click link trong email
+- Dòng 147: Xóa dòng placeholder `await supabase.rpc("", {}).catch(() => {})`
+- Dòng 295-296: Cast `originalTx.amount` đúng type: `const refundAmount = amount || Number(originalTx.amount as string)`
+- Dòng 310: Cast tương tự: `Number((wallet?.available as string) || '0') + refundAmount`
 
-**File mới:** `src/pages/auth/ResetPassword.tsx`
-**File sửa:** `src/components/auth/AuthForm.tsx` (thêm link quên mật khẩu)
+## Sau khi sửa
 
-### 3. Cấu hình wallet-auth Edge Function
-
-File `supabase/config.toml` chưa có cấu hình `verify_jwt = false` cho wallet-auth. Cần thêm để function nhận request không cần JWT.
-
-**File sửa:** `supabase/config.toml`
-
-### 4. Sửa wallet-auth Edge Function
-
-Function hiện dùng `admin.createSession()` nhưng API này có thể không khả dụng. Cần đổi sang cách tiếp cận an toàn hơn: dùng `signInWithPassword` với password được lưu trữ, hoặc dùng `admin.generateLink` rồi exchange token.
-
-**File sửa:** `supabase/functions/wallet-auth/index.ts`
-
-### 5. Auth Guard cho các trang cần đăng nhập
-
-Tạo component `RequireAuth` để bảo vệ các route cần đăng nhập (Settings, Wallet, Simulator, v.v.) thay vì kiểm tra thủ công trong từng trang.
-
-**File mới:** `src/components/auth/RequireAuth.tsx`
-**File sửa:** `src/App.tsx` (wrap các route cần bảo vệ)
-
----
-
-## Chi tiết kỹ thuật
-
-### AuthCallback page
-
-```text
-User click magic link trong email
-  -> redirect về /auth/callback#access_token=...
-  -> Supabase tự động parse token từ hash
-  -> useAuth detect session mới
-  -> Check username -> redirect setup-identity hoặc returnTo
-```
-
-### ResetPassword page
-
-```text
-User click "Quên mật khẩu" ở AuthForm
-  -> Nhập email -> supabase.auth.resetPasswordForEmail()
-  -> User nhận email -> click link
-  -> Redirect về /auth/reset-password#type=recovery
-  -> Hiện form nhập mật khẩu mới
-  -> supabase.auth.updateUser({ password })
-```
-
-### RequireAuth component
-
-```text
-<RequireAuth>
-  <Settings />
-</RequireAuth>
-
-// Nếu chưa login -> redirect /auth?returnTo=current_path
-// Nếu đã login -> render children
-```
-
-### Các route cần bảo vệ
-
-| Route | Bảo vệ |
-|-------|--------|
-| /settings | RequireAuth |
-| /wallet | RequireAuth |
-| /simulator | RequireAuth |
-| /mint-requests | RequireAuth |
-| /treasury | RequireAuth |
-| /angel | RequireAuth |
-| /admin/events | RequireAuth + Admin role |
-
-### Tổng hợp file thay đổi
-
-| File | Thay doi |
-|------|----------|
-| `src/pages/auth/AuthCallback.tsx` | Moi - xu ly OTP callback |
-| `src/pages/auth/ResetPassword.tsx` | Moi - dat lai mat khau |
-| `src/components/auth/RequireAuth.tsx` | Moi - guard component |
-| `src/components/auth/AuthForm.tsx` | Them link "Quen mat khau" |
-| `src/App.tsx` | Them routes callback, reset-password, wrap RequireAuth |
-| `supabase/config.toml` | Them verify_jwt = false cho wallet-auth |
-| `supabase/functions/wallet-auth/index.ts` | Sua cach tao session |
-
+Edge functions sẽ deploy thành công, cho phép:
+- Đăng nhập Email + Password hoạt động bình thường
+- Đăng nhập Wallet hoạt động
+- Wallet operations (transfer, refund) hoạt động
