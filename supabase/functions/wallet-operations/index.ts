@@ -144,7 +144,6 @@ Deno.serve(async (req) => {
       }
 
       // Debit sender
-      await supabase.rpc("", {}).catch(() => {}); // placeholder
       const { error: debitErr } = await supabase
         .from("wallet_accounts")
         .update({ available: Number(senderWallet.available) - amount })
@@ -292,8 +291,8 @@ Deno.serve(async (req) => {
 
       if (!originalTx) return errorResponse("PAYMENT_NOT_FOUND", "Original payment not found", traceId, 404);
 
-      const refundAmount = amount || Number(originalTx.amount);
-      if (refundAmount > Number(originalTx.amount)) {
+      const refundAmount = (amount as number) || Number(originalTx.amount as unknown as string);
+      if (refundAmount > Number(originalTx.amount as unknown as string)) {
         return errorResponse("REFUND_EXCEEDS", "Refund amount exceeds original payment", traceId);
       }
 
@@ -307,7 +306,7 @@ Deno.serve(async (req) => {
 
       await supabase
         .from("wallet_accounts")
-        .update({ available: Number(wallet?.available || 0) + refundAmount })
+        .update({ available: Number((wallet?.available as unknown as string) || '0') + refundAmount })
         .eq("user_id", originalTx.from_user_id)
         .eq("asset", originalTx.asset);
 

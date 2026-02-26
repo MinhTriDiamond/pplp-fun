@@ -3,7 +3,7 @@ import { ethers } from "npm:ethers@6";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 Deno.serve(async (req) => {
@@ -57,9 +57,10 @@ Deno.serve(async (req) => {
     let userId: string;
 
     try {
-      const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(walletEmail);
-      if (existingUser?.user) {
-        userId = existingUser.user.id;
+      const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
+      const existingUser = users.find(u => u.email === walletEmail);
+      if (existingUser) {
+        userId = existingUser.id;
       } else {
         throw new Error('User not found');
       }
@@ -89,7 +90,7 @@ Deno.serve(async (req) => {
     );
 
     // Ensure password is set correctly for existing users
-    await supabaseAdmin.auth.admin.updateUser(userId, { password: walletPassword });
+    await supabaseAdmin.auth.admin.updateUserById(userId, { password: walletPassword });
 
     const { data: signInData, error: signInError } = await anonClient.auth.signInWithPassword({
       email: walletEmail,
