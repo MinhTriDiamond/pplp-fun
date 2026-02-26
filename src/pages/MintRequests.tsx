@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { WalletConnect } from '@/components/wallet/WalletConnect';
-import { UserMenu } from '@/components/auth/UserMenu';
+
 import { useWallet } from '@/hooks/useWallet';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -179,7 +179,6 @@ export default function MintRequests() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <UserMenu />
             <WalletConnect />
           </div>
         </div>
