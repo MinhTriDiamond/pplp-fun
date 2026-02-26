@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,35 +6,12 @@ import { PrivacyDashboard } from '@/components/settings/PrivacyDashboard';
 import { UsernameForm } from '@/components/settings/UsernameForm';
 import { FunNavbar } from '@/components/layout/FunNavbar';
 import { BottomNav } from '@/components/layout/BottomNav';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function Settings() {
-  const navigate = useNavigate();
-  const { user, loading } = useAuth();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
-    }
-  }, [user, loading, navigate]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-light">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <FunNavbar />
 
-      {/* Main Content */}
       <main className="container max-w-3xl px-4 py-8">
         <div className="flex items-center gap-2 mb-6">
           <SettingsIcon className="h-5 w-5 text-primary" />
