@@ -4,7 +4,7 @@ import { ArrowLeft, Sparkles, ListChecks, Pen, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WalletConnect } from '@/components/wallet/WalletConnect';
-import { UserMenu } from '@/components/auth/UserMenu';
+
 import { SimulatorTab } from '@/components/simulator/SimulatorTab';
 import { MintRequestsTab } from '@/components/simulator/MintRequestsTab';
 import { ClaimTab } from '@/components/simulator/ClaimTab';
@@ -75,7 +75,6 @@ export default function Simulator() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <p className="text-sm text-muted-foreground hidden lg:block">Test & Mint FUN Money</p>
-              <UserMenu />
               <div className="hidden sm:block">
                 <WalletConnect />
               </div>
