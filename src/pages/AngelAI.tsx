@@ -35,8 +35,6 @@ export default function AngelAI() {
     }
   }, [messages]);
 
-  if (authLoading) return null;
-  if (!isAuthenticated) return <Navigate to="/auth" replace />;
 
   const handleSend = () => {
     if (!input.trim() || isLoading) return;
