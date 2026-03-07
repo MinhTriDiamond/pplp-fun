@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Sparkles, ListChecks, Pen, Gift } from 'lucide-react';
+import { ArrowLeft, Sparkles, ListChecks, Pen, Gift, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WalletConnect } from '@/components/wallet/WalletConnect';
