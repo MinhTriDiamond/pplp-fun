@@ -86,9 +86,12 @@ export default function Simulator() {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="simulator" className="space-y-6">
-          <TabsList className="grid w-full max-w-lg grid-cols-4 h-auto">
+          <TabsList className="grid w-full max-w-2xl grid-cols-5 h-auto">
             <TabsTrigger value="simulator" className="gap-1 text-xs sm:text-sm px-2">
-              <Sparkles className="h-3.5 w-3.5 shrink-0" /> <span className="hidden sm:inline">Simulator</span><span className="sm:hidden">Sim</span>
+              <Sparkles className="h-3.5 w-3.5 shrink-0" /> <span className="hidden sm:inline">PPLP</span><span className="sm:hidden">PPLP</span>
+            </TabsTrigger>
+            <TabsTrigger value="lightscore" className="gap-1 text-xs sm:text-sm px-2">
+              <Sun className="h-3.5 w-3.5 shrink-0" /> <span className="hidden sm:inline">Light Score</span><span className="sm:hidden">LS</span>
             </TabsTrigger>
             <TabsTrigger value="requests" className="gap-1 text-xs sm:text-sm px-2">
               <ListChecks className="h-3.5 w-3.5 shrink-0" /> <span className="hidden sm:inline">Requests</span><span className="sm:hidden">Req</span>
