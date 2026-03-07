@@ -7,6 +7,7 @@ import { WalletConnect } from '@/components/wallet/WalletConnect';
 
 import { SimulatorTab } from '@/components/simulator/SimulatorTab';
 import { MintRequestsTab } from '@/components/simulator/MintRequestsTab';
+import { LightScoreTab } from '@/components/simulator/LightScoreTab';
 import { ClaimTab } from '@/components/simulator/ClaimTab';
 import { 
   scoreAction, 
