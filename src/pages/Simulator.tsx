@@ -120,6 +120,10 @@ export default function Simulator() {
             />
           </TabsContent>
 
+          <TabsContent value="lightscore">
+            <LightScoreTab />
+          </TabsContent>
+
           <TabsContent value="requests">
             <MintRequestsTab />
           </TabsContent>
